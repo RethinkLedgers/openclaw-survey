@@ -1,4 +1,5 @@
 // POST /api/submit — Atomically increment vote counts in Upstash Redis
+// Supports single-question submissions: { qid, values, isFinal }
 // Uses HINCRBY (atomic) so 100+ concurrent submissions are safe
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
@@ -23,26 +24,28 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { answers } = req.body;
-        if (!answers || typeof answers !== 'object') {
-            return res.status(400).json({ error: 'Invalid payload' });
+        const { qid, values, isFinal } = req.body;
+
+        // Validate
+        if (!qid || !/^q\d+$/.test(qid)) {
+            return res.status(400).json({ error: 'Invalid question ID' });
+        }
+        if (!Array.isArray(values) || values.length === 0) {
+            return res.status(400).json({ error: 'Invalid values' });
         }
 
-        // Build atomic pipeline: HINCRBY for each answer + INCR total + SET timestamp
         const pipeline = [];
 
-        for (const [qid, values] of Object.entries(answers)) {
-            // Validate question ID format
-            if (!/^q\d+$/.test(qid)) continue;
-            if (!Array.isArray(values)) continue;
-
-            for (const val of values) {
-                if (typeof val !== 'string' || val.length > 200) continue;
-                pipeline.push(['HINCRBY', `oc:${qid}`, val, 1]);
-            }
+        for (const val of values) {
+            if (typeof val !== 'string' || val.length > 200) continue;
+            pipeline.push(['HINCRBY', `oc:${qid}`, val, 1]);
         }
 
-        pipeline.push(['INCR', 'oc:total']);
+        // Only increment total respondent count on the final question
+        if (isFinal) {
+            pipeline.push(['INCR', 'oc:total']);
+        }
+
         pipeline.push(['SET', 'oc:lastResponseTime', Date.now().toString()]);
 
         await redis(pipeline);

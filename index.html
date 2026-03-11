@@ -280,6 +280,58 @@
             animation: shake 0.4s ease;
         }
 
+        .question-card.submitted {
+            border-color: rgba(52, 211, 153, 0.3) !important;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.05);
+        }
+
+        .question-card.submitted .options { pointer-events: none; opacity: 0.6; }
+
+        .submitted-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--success);
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: 12px;
+            padding: 0.15rem 0.5rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .confirm-btn {
+            margin-top: 0.6rem;
+            padding: 0.5rem 1.2rem;
+            background: var(--gradient-claw);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 10px rgba(255, 107, 53, 0.15);
+        }
+
+        .confirm-btn:hover { box-shadow: 0 4px 15px rgba(255, 107, 53, 0.25); }
+        .confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .submitting-indicator {
+            display: inline-block;
+            width: 12px; height: 12px;
+            border: 2px solid rgba(52,211,153,0.3);
+            border-top-color: var(--success);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-6px); }
@@ -795,7 +847,7 @@
         <span class="progress-text" id="progress-text">0/16</span>
     </div>
     <div id="survey-form"></div>
-    <button class="submit-btn" id="submit-btn" onclick="submitSurvey()">Submit Survey &#x1F99E;</button>
+    <!-- Questions submit individually as you answer them -->
 </section>
 
 <!-- SUCCESS -->
@@ -980,6 +1032,9 @@ function showToast(msg, type = 'success') {
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ===== STATE =====
+const submittedQuestions = new Set();
+
 // ===== BUILD SURVEY =====
 function buildSurveyForm() {
     const form = document.getElementById('survey-form');
@@ -987,6 +1042,8 @@ function buildSurveyForm() {
         const inputType = q.type === 'single' ? 'radio' : 'checkbox';
         const note = q.type === 'multi'
             ? ` <span class="multi-note">(Select all that apply${q.maxSelect ? ', up to ' + q.maxSelect : ''})</span>` : '';
+        const confirmBtn = q.type === 'multi'
+            ? `<button class="confirm-btn" data-qid="${q.id}" style="display:none" onclick="confirmMulti('${q.id}')">Confirm Selection</button>` : '';
         return `
         <div class="question-card" data-qid="${q.id}">
             <div class="q-title">
@@ -1002,6 +1059,7 @@ function buildSurveyForm() {
                     </label>
                 `).join('')}
             </div>
+            ${confirmBtn}
         </div>`;
     }).join('');
 
@@ -1012,12 +1070,18 @@ function buildSurveyForm() {
             const qid = this.dataset.qid;
             const q = questions.find(q => q.id === qid);
             const card = this.closest('.question-card');
+
+            if (submittedQuestions.has(qid)) return;
             card.classList.remove('error');
 
             if (input.type === 'radio') {
                 card.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
                 this.classList.add('selected');
                 input.checked = true;
+                card.classList.add('answered');
+                updateProgress();
+                // Single-select: submit immediately
+                submitQuestion(qid);
             } else {
                 if (this.classList.contains('selected')) {
                     this.classList.remove('selected');
@@ -1027,65 +1091,82 @@ function buildSurveyForm() {
                     this.classList.add('selected');
                     input.checked = true;
                 }
+                // Show/hide confirm button for multi-select
+                const hasSelection = card.querySelector('.option-label.selected');
+                const confirmBtn = card.querySelector('.confirm-btn');
+                if (confirmBtn) {
+                    confirmBtn.style.display = hasSelection ? 'inline-block' : 'none';
+                }
+                updateProgress();
             }
-            card.classList.add('answered');
-            updateProgress();
         });
     });
 }
 
 function updateProgress() {
-    const answered = questions.filter(q => {
-        const card = document.querySelector(`[data-qid="${q.id}"].question-card`);
-        return card && card.querySelector('.option-label.selected');
-    }).length;
-    const pct = (answered / questions.length) * 100;
+    const pct = (submittedQuestions.size / questions.length) * 100;
     document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('progress-text').textContent = answered + '/' + questions.length;
+    document.getElementById('progress-text').textContent = submittedQuestions.size + '/' + questions.length;
 }
 
-// ===== SUBMIT =====
-async function submitSurvey() {
-    const btn = document.getElementById('submit-btn');
-    const answers = {};
-    let firstUnanswered = null;
+// ===== SUBMIT SINGLE QUESTION =====
+async function submitQuestion(qid) {
+    if (submittedQuestions.has(qid)) return;
 
-    questions.forEach(q => {
-        const card = document.querySelector(`[data-qid="${q.id}"].question-card`);
-        const selected = card.querySelectorAll('.option-label.selected');
-        if (selected.length === 0) {
-            card.classList.add('error');
-            if (!firstUnanswered) firstUnanswered = card;
-        } else {
-            card.classList.remove('error');
-            answers[q.id] = Array.from(selected).map(s => s.querySelector('input').value);
-        }
-    });
+    const card = document.querySelector(`[data-qid="${qid}"].question-card`);
+    const selected = card.querySelectorAll('.option-label.selected');
+    if (selected.length === 0) return;
 
-    if (firstUnanswered) {
-        firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        showToast('Please answer all questions', 'error');
-        return;
-    }
+    const values = Array.from(selected).map(s => s.querySelector('input').value);
+    const isFinal = submittedQuestions.size === questions.length - 1; // this is the last one
 
-    btn.disabled = true;
-    btn.innerHTML = '<span class="loading-spinner"></span>Submitting...';
+    // Show submitting state
+    const title = card.querySelector('.q-title');
+    const spinner = document.createElement('span');
+    spinner.className = 'submitting-indicator';
+    title.appendChild(spinner);
 
     try {
         const res = await fetch('/api/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ answers })
+            body: JSON.stringify({ qid, values, isFinal })
         });
         if (!res.ok) throw new Error('Submit failed');
 
-        document.getElementById('survey-section').style.display = 'none';
-        document.getElementById('success-screen').classList.add('active');
-    } catch (err) {
-        showToast('Failed to submit. Please try again.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = 'Submit Survey &#x1F99E;';
+        submittedQuestions.add(qid);
+        card.classList.add('submitted');
+        card.classList.remove('error');
+
+        // Replace spinner with badge
+        spinner.remove();
+        const badge = document.createElement('span');
+        badge.className = 'submitted-badge';
+        badge.innerHTML = '&#10003; Saved';
+        title.appendChild(badge);
+
+        // Hide confirm button
+        const confirmBtn = card.querySelector('.confirm-btn');
+        if (confirmBtn) confirmBtn.style.display = 'none';
+
+        updateProgress();
+
+        // If all done, show success
+        if (submittedQuestions.size === questions.length) {
+            setTimeout(() => {
+                document.getElementById('survey-section').style.display = 'none';
+                document.getElementById('success-screen').classList.add('active');
+            }, 600);
+        }
+    } catch {
+        spinner.remove();
+        showToast('Failed to save answer. Tap to retry.', 'error');
+        // Allow retry — don't mark as submitted
     }
+}
+
+async function confirmMulti(qid) {
+    await submitQuestion(qid);
 }
 
 // ===== RESULTS =====

@@ -16,45 +16,57 @@ async function redis(commands) {
     return res.json();
 }
 
+// Single-select question IDs (used to calculate unique respondents)
+const SINGLE_SELECT_IDS = [1, 2, 3, 5, 7, 9, 10, 11, 14, 15, 16];
+
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
-        // Fetch all question hashes + total + timestamp in one pipeline
         const pipeline = [];
         for (let i = 1; i <= 16; i++) {
             pipeline.push(['HGETALL', `oc:q${i}`]);
         }
-        pipeline.push(['GET', 'oc:total']);
         pipeline.push(['GET', 'oc:lastResponseTime']);
 
         const results = await redis(pipeline);
 
-        // Parse results
         const questions = {};
+        let maxRespondents = 0;
+
         for (let i = 0; i < 16; i++) {
             const hashData = results[i]?.result;
+            const map = {};
+            let qTotal = 0;
+
             if (hashData && Array.isArray(hashData)) {
-                // HGETALL returns flat array: [key1, val1, key2, val2, ...]
-                const map = {};
                 for (let j = 0; j < hashData.length; j += 2) {
-                    map[hashData[j]] = parseInt(hashData[j + 1], 10) || 0;
+                    const count = parseInt(hashData[j + 1], 10) || 0;
+                    map[hashData[j]] = count;
+                    qTotal += count;
                 }
-                questions[`q${i + 1}`] = map;
-            } else {
-                questions[`q${i + 1}`] = {};
+            }
+
+            questions[`q${i + 1}`] = { counts: map, total: qTotal };
+
+            // For single-select questions, total votes = unique respondents
+            // Use the max across single-select questions as best estimate
+            if (SINGLE_SELECT_IDS.includes(i + 1) && qTotal > maxRespondents) {
+                maxRespondents = qTotal;
             }
         }
 
-        const total = parseInt(results[16]?.result, 10) || 0;
-        const lastResponseTime = parseInt(results[17]?.result, 10) || null;
+        const lastResponseTime = parseInt(results[16]?.result, 10) || null;
 
-        // Cache for 1 second to handle burst polling from many clients
         res.setHeader('Cache-Control', 's-maxage=1, stale-while-revalidate');
 
-        return res.status(200).json({ total, lastResponseTime, questions });
+        return res.status(200).json({
+            total: maxRespondents,
+            lastResponseTime,
+            questions
+        });
     } catch (err) {
         console.error('Results error:', err);
         return res.status(500).json({ error: 'Internal error' });

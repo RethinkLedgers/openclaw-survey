@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Survey</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+        :root {
+            --claw-orange: #FF6B35;
+            --claw-red: #E8434A;
+            --claw-purple: #7C3AED;
+            --claw-blue: #3B82F6;
+            --claw-teal: #14B8A6;
+            --bg-deep: #07080F;
+            --bg-card: rgba(15, 17, 30, 0.85);
+            --bg-card-solid: #0F111E;
+            --bg-card-hover: rgba(25, 28, 50, 0.9);
+            --text: #E8ECF4;
+            --text-muted: #6B7194;
+            --border: rgba(124, 58, 237, 0.15);
+            --border-bright: rgba(255, 107, 53, 0.3);
+            --glow-orange: rgba(255, 107, 53, 0.15);
+            --glow-purple: rgba(124, 58, 237, 0.15);
+            --gradient-claw: linear-gradient(135deg, #FF6B35, #E8434A, #7C3AED);
+            --gradient-bar: linear-gradient(90deg, #FF6B35, #E8434A);
+            --gradient-accent: linear-gradient(135deg, #7C3AED, #3B82F6);
+            --success: #34D399;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .bg-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            pointer-events: none;
+            animation: glowFloat 12s ease-in-out infinite;
+        }
+
+        .bg-glow-1 {
+            width: 500px; height: 500px;
+            background: rgba(255, 107, 53, 0.06);
+            top: -100px; right: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-glow-2 {
+            width: 600px; height: 600px;
+            background: rgba(124, 58, 237, 0.05);
+            bottom: -200px; left: -100px;
+            animation-delay: -4s;
+        }
+
+        .bg-glow-3 {
+            width: 300px; height: 300px;
+            background: rgba(59, 130, 246, 0.04);
+            top: 40%; left: 50%;
+            animation-delay: -8s;
+        }
+
+        @keyframes glowFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.05); }
+            66% { transform: translate(-20px, 15px) scale(0.95); }
+        }
+
+        /* ===== NAVIGATION ===== */
+        .nav {
+            background: rgba(7, 8, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-lobster {
+            font-size: 1.6rem;
+            filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.4));
+        }
+
+        .nav-logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-logo .open { color: var(--claw-orange); }
+        .nav-logo .claw { color: var(--text); }
+
+        .nav-tabs { display: flex; gap: 0.4rem; }
+
+        .nav-tab {
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.25s;
+        }
+
+        .nav-tab:hover {
+            color: var(--text);
+            background: rgba(124, 58, 237, 0.08);
+            border-color: var(--border);
+        }
+
+        .nav-tab.active {
+            background: var(--gradient-claw);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 2px 12px rgba(255, 107, 53, 0.25);
+        }
+
+        /* ===== SECTIONS ===== */
+        .section {
+            display: none;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section.active { display: block; }
+
+        /* ===== SURVEY HEADER ===== */
+        .survey-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .survey-header .mascot {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 0 20px rgba(255, 107, 53, 0.3));
+            animation: mascotBob 3s ease-in-out infinite;
+        }
+
+        @keyframes mascotBob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .survey-header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin-bottom: 0.4rem;
+        }
+
+        .survey-header h1 .highlight {
+            background: var(--gradient-claw);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .survey-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .survey-header .tag {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            color: var(--claw-purple);
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-wrap {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .progress-bar {
+            flex: 1;
+            background: rgba(124, 58, 237, 0.08);
+            border-radius: 20px;
+            height: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-claw);
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 0%;
+        }
+
+        .progress-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--claw-orange);
+            font-weight: 600;
+            min-width: 40px;
+        }
+
+        /* ===== QUESTION CARDS ===== */
+        .question-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .question-card:hover {
+            border-color: rgba(124, 58, 237, 0.25);
+        }
+
+        .question-card.answered {
+            border-color: rgba(52, 211, 153, 0.2);
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.03);
+        }
+
+        .question-card.error {
+            border-color: var(--claw-red) !important;
+            box-shadow: 0 0 20px rgba(232, 67, 74, 0.1);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .q-title {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .question-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--gradient-accent);
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .q-title h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .multi-note {
+            font-size: 0.75rem;
+            color: var(--claw-orange);
+            font-weight: 500;
+        }
+
+        .options { display: flex; flex-direction: column; gap: 0.4rem; }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(124, 58, 237, 0.08);
+            background: rgba(15, 17, 30, 0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .option-label:hover {
+            background: rgba(124, 58, 237, 0.06);
+            border-color: rgba(124, 58, 237, 0.2);
+            color: var(--text);
+        }
+
+        .option-label.selected {
+            background: rgba(255, 107, 53, 0.08);
+            border-color: rgba(255, 107, 53, 0.35);
+            color: var(--text);
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.05);
+        }
+
+        .option-label input { display: none; }
+
+        .custom-radio, .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(124, 58, 237, 0.2);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox { border-radius: 5px; }
+
+        .option-label.selected .custom-radio,
+        .option-label.selected .custom-checkbox {
+            border-color: var(--claw-orange);
+            background: var(--gradient-claw);
+        }
+
+        .option-label.selected .custom-radio::after {
+            content: '';
+            width: 7px;
+            height: 7px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .option-label.selected .custom-checkbox::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+            background-size: contain;
+        }
+
+        /* ===== SUBMIT BUTTON ===== */
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--gradient-claw);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: all 0.25s;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before { left: 100%; }
+        .submit-btn:hover { box-shadow: 0 6px 30px rgba(255, 107, 53, 0.3); transform: translateY(-1px); }
+        .submit-btn:active { transform: translateY(0) scale(0.99); }
+        .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ===== SUCCESS SCREEN ===== */
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 5rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .success-screen.active { display: block; }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--gradient-claw);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            box-shadow: 0 0 40px rgba(255, 107, 53, 0.2);
+            animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes successPop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .success-screen h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-screen p { color: var(--text-muted); font-size: 1.05rem; }
+
+        .success-screen .lobster-wave {
+            font-size: 4rem;
+            display: block;
+            margin-top: 2rem;
+            animation: mascotBob 2s ease-in-out infinite;
+        }
+
+        /* ===== RESULTS SECTION ===== */
+        #results-section { max-width: 960px; }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .results-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .results-header h1 .highlight {
+            background: var(--gradient-claw);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            color: var(--success);
+            margin-top: 0.5rem;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
+            50% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0); }
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.2rem;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: var(--gradient-claw);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            font-weight: 500;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            transition: border-color 0.3s;
+        }
+
+        .result-card:hover {
+            border-color: rgba(124, 58, 237, 0.2);
+        }
+
+        .result-card h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+        }
+
+        .result-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-bar-label {
+            width: 200px;
+            flex-shrink: 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .result-bar-track {
+            flex: 1;
+            height: 26px;
+            background: rgba(124, 58, 237, 0.06);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(124, 58, 237, 0.06);
+        }
+
+        .result-bar-fill {
+            height: 100%;
+            background: var(--gradient-bar);
+            border-radius: 5px;
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            min-width: 0;
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.15);
+        }
+
+        .result-bar-value {
+            width: 70px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-align: left;
+            color: var(--claw-orange);
+        }
+
+        /* ===== QR SECTION ===== */
+        #qr-section { max-width: 600px; text-align: center; }
+
+        .qr-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .qr-container {
+            background: white;
+            display: inline-block;
+            padding: 1.25rem;
+            border-radius: 14px;
+            box-shadow: 0 0 40px rgba(255, 107, 53, 0.08);
+        }
+
+        .qr-url {
+            background: rgba(15, 17, 30, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            margin-top: 1.5rem;
+        }
+
+        .qr-url span { flex: 1; text-align: left; }
+
+        .copy-btn {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.45rem 0.9rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: box-shadow 0.2s;
+        }
+
+        .copy-btn:hover { box-shadow: 0 2px 12px rgba(124, 58, 237, 0.3); }
+
+        .qr-instructions {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(124, 58, 237, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(124, 58, 237, 0.1);
+        }
+
+        .qr-instructions p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .admin-controls {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .admin-controls h4 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid rgba(232, 67, 74, 0.3);
+            color: var(--claw-red);
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: var(--claw-red);
+            color: white;
+            border-color: var(--claw-red);
+        }
+
+        /* ===== LOADING INDICATOR ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 999;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); color: var(--success); }
+        .toast.error { background: rgba(232, 67, 74, 0.15); border: 1px solid rgba(232, 67, 74, 0.3); color: var(--claw-red); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .nav { padding: 0.6rem 1rem; flex-direction: column; gap: 0.6rem; }
+            .nav-tabs { width: 100%; justify-content: center; }
+            .nav-tab { font-size: 0.78rem; padding: 0.45rem 0.7rem; }
+            .section { padding: 1.5rem 1rem 4rem; }
+            .survey-header h1 { font-size: 1.6rem; }
+            .result-bar-label { width: 110px; font-size: 0.7rem; }
+            .result-bar-value { width: 55px; font-size: 0.72rem; }
+            .qr-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Animated Background -->
+<canvas id="bg-canvas"></canvas>
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="bg-glow bg-glow-3"></div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-brand">
+        <span class="nav-lobster">&#x1F99E;</span>
+        <div class="nav-logo"><span class="open">Open</span><span class="claw">Claw</span></div>
+    </div>
+    <div class="nav-tabs">
+        <button class="nav-tab active" data-section="survey">Survey</button>
+        <button class="nav-tab" data-section="results">Live Results</button>
+        <button class="nav-tab" data-section="qr">QR / Admin</button>
+    </div>
+</nav>
+
+<!-- SURVEY -->
+<section id="survey-section" class="section active">
+    <div class="survey-header">
+        <span class="mascot">&#x1F99E;</span>
+        <h1>Help <span class="highlight">OpenClaw</span> grow</h1>
+        <p>The AI that actually does things. Tell us what you need.</p>
+        <span class="tag">open-source &middot; community-driven &middot; 2 min survey</span>
+    </div>
+    <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <span class="progress-text" id="progress-text">0/16</span>
+    </div>
+    <div id="survey-form"></div>
+    <button class="submit-btn" id="submit-btn" onclick="submitSurvey()">Submit Survey &#x1F99E;</button>
+</section>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="success-screen">
+    <div class="success-icon">&#10003;</div>
+    <h2>You're awesome!</h2>
+    <p>Your voice shapes the future of OpenClaw. Thank you!</p>
+    <span class="lobster-wave">&#x1F99E;</span>
+</div>
+
+<!-- LIVE RESULTS -->
+<section id="results-section" class="section">
+    <div class="results-header">
+        <h1><span class="highlight">Live</span> Results</h1>
+        <p id="response-count-text" style="color:var(--text-muted)">Waiting for responses...</p>
+        <div class="live-badge"><span class="live-dot"></span> AUTO-REFRESHING</div>
+    </div>
+    <div class="results-stats">
+        <div class="stat-card">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Responses</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-questions">16</div>
+            <div class="stat-label">Questions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="stat-latest">--</div>
+            <div class="stat-label">Last Response</div>
+        </div>
+    </div>
+    <div id="results-container"></div>
+</section>
+
+<!-- QR / ADMIN -->
+<section id="qr-section" class="section">
+    <div class="survey-header">
+        <span class="mascot">&#x1F99E;</span>
+        <h1>Share the <span class="highlight">Survey</span></h1>
+        <p>Scan this QR code to jump straight to the survey</p>
+    </div>
+    <div class="qr-card">
+        <div class="qr-container" id="qr-code"></div>
+        <div class="qr-url">
+            <span id="survey-url"></span>
+            <button class="copy-btn" onclick="copyURL()">Copy</button>
+        </div>
+        <div class="qr-instructions">
+            <p>Point your phone camera at the QR code, or share the link directly. Results appear live on the "Live Results" tab.</p>
+        </div>
+        <div class="admin-controls">
+            <h4>Admin Controls</h4>
+            <button class="reset-btn" onclick="resetResults()">Reset All Results</button>
+        </div>
+    </div>
+</section>
+
+<script>
+// ===== ANIMATED CANVAS BACKGROUND =====
+(function() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles, nodes, mouse;
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+    }
+
+    function init() {
+        resize();
+        mouse = { x: w / 2, y: h / 2 };
+
+        // Floating particles
+        particles = Array.from({ length: 60 }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            r: Math.random() * 2 + 0.5,
+            color: ['rgba(255,107,53,', 'rgba(124,58,237,', 'rgba(59,130,246,', 'rgba(20,184,166,'][Math.floor(Math.random() * 4)]
+        }));
+
+        // Circuit nodes
+        nodes = Array.from({ length: 12 }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.15,
+            vy: (Math.random() - 0.5) * 0.15,
+        }));
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, w, h);
+
+        // Draw connections between close nodes
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const dx = nodes[i].x - nodes[j].x;
+                const dy = nodes[i].y - nodes[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 300) {
+                    const alpha = (1 - dist / 300) * 0.06;
+                    ctx.beginPath();
+                    ctx.moveTo(nodes[i].x, nodes[i].y);
+                    ctx.lineTo(nodes[j].x, nodes[j].y);
+                    ctx.strokeStyle = `rgba(124, 58, 237, ${alpha})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+            // Move nodes
+            nodes[i].x += nodes[i].vx;
+            nodes[i].y += nodes[i].vy;
+            if (nodes[i].x < 0 || nodes[i].x > w) nodes[i].vx *= -1;
+            if (nodes[i].y < 0 || nodes[i].y > h) nodes[i].vy *= -1;
+        }
+
+        // Draw particles
+        particles.forEach(p => {
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const glow = dist < 200 ? (1 - dist / 200) * 0.4 : 0;
+            const alpha = 0.25 + glow;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r + glow * 2, 0, Math.PI * 2);
+            ctx.fillStyle = p.color + alpha + ')';
+            ctx.fill();
+
+            if (p.r > 1.5) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+                ctx.fillStyle = p.color + (alpha * 0.15) + ')';
+                ctx.fill();
+            }
+
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0) p.x = w;
+            if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h;
+            if (p.y > h) p.y = 0;
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+    init();
+    draw();
+})();
+
+// ===== SURVEY DATA =====
+const questions = [
+    { id:'q1', text:'How did you first hear about OpenClaw?', type:'single', options:['Social media','Friend or colleague','Online search','AI or tech community','Advertisement','Other'] },
+    { id:'q2', text:'What best describes your interest in OpenClaw?', type:'single', options:['Personal use','Business use','Both personal and business','Just exploring AI tools'] },
+    { id:'q3', text:'What industry are you in?', type:'single', options:['Technology','Hospitality or travel','Real estate or property management','Marketing or media','Education','Finance','Retail or ecommerce','Other'] },
+    { id:'q4', text:'What would you want to use OpenClaw for?', type:'multi', options:['Automating tasks','Customer support','Data analysis','Content creation','Workflow automation','AI assistants for teams','Personal productivity','Other'] },
+    { id:'q5', text:'How familiar are you with AI tools?', type:'single', options:['I have never used AI tools','Beginner','Intermediate','Advanced user'] },
+    { id:'q6', text:'Which features of OpenClaw interest you the most?', type:'multi', options:['AI automation','Integrations with other tools','Custom AI workflows','Business productivity tools','Analytics and reporting','Ease of use'] },
+    { id:'q7', text:'How important is automation in your work or daily life?', type:'single', options:['Not important','Slightly important','Moderately important','Very important','Essential'] },
+    { id:'q8', text:'What problems would you want OpenClaw to help solve?', type:'multi', options:['Repetitive manual tasks','Managing customer inquiries','Organizing information','Improving team productivity','Saving time','Reducing operational costs'] },
+    { id:'q9', text:'Where would you most likely use OpenClaw?', type:'single', options:['Personal productivity','Small business','Startup company','Medium sized company','Large enterprise'] },
+    { id:'q10', text:'How large is your organization?', type:'single', options:['Just me','2 to 10 employees','11 to 50 employees','51 to 200 employees','200+'] },
+    { id:'q11', text:'How likely are you to try a new AI tool like OpenClaw in the next 30 days?', type:'single', options:['Very unlikely','Unlikely','Neutral','Likely','Very likely'] },
+    { id:'q12', text:'Which tools do you currently use that OpenClaw might improve or replace?', type:'multi', options:['ChatGPT or other AI tools','Zapier or automation tools','CRM systems','Project management tools','Customer support tools','None currently'] },
+    { id:'q13', text:'What matters most when choosing an AI platform?', type:'multi', maxSelect:3, options:['Price','Ease of use','Powerful features','Security and privacy','Integrations with other tools','Customer support'] },
+    { id:'q14', text:'What pricing model would you prefer?', type:'single', options:['Free plan with limited features','Monthly subscription','Pay per usage','Enterprise licensing'] },
+    { id:'q15', text:'Would you be interested in trying OpenClaw?', type:'single', options:['Yes I want early access','Yes if there is a free trial','Maybe I want to learn more first','Not sure yet','No not interested right now'] },
+    { id:'q16', text:'Is this conversation helpful so far?', type:'single', options:['Yes very helpful','Somewhat helpful','Neutral','Not really','No'] }
+];
+
+// ===== TOAST =====
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== BUILD SURVEY =====
+function buildSurveyForm() {
+    const form = document.getElementById('survey-form');
+    form.innerHTML = questions.map((q, i) => {
+        const inputType = q.type === 'single' ? 'radio' : 'checkbox';
+        const note = q.type === 'multi'
+            ? ` <span class="multi-note">(Select all that apply${q.maxSelect ? ', up to ' + q.maxSelect : ''})</span>` : '';
+        return `
+        <div class="question-card" data-qid="${q.id}">
+            <div class="q-title">
+                <span class="question-number">${i + 1}</span>
+                <h3>${q.text}${note}</h3>
+            </div>
+            <div class="options">
+                ${q.options.map((opt, oi) => `
+                    <label class="option-label" data-qid="${q.id}" data-opt="${oi}">
+                        <input type="${inputType}" name="${q.id}" value="${opt}">
+                        <span class="${inputType === 'radio' ? 'custom-radio' : 'custom-checkbox'}"></span>
+                        ${opt}
+                    </label>
+                `).join('')}
+            </div>
+        </div>`;
+    }).join('');
+
+    form.querySelectorAll('.option-label').forEach(label => {
+        label.addEventListener('click', function(e) {
+            e.preventDefault();
+            const input = this.querySelector('input');
+            const qid = this.dataset.qid;
+            const q = questions.find(q => q.id === qid);
+            const card = this.closest('.question-card');
+            card.classList.remove('error');
+
+            if (input.type === 'radio') {
+                card.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
+                this.classList.add('selected');
+                input.checked = true;
+            } else {
+                if (this.classList.contains('selected')) {
+                    this.classList.remove('selected');
+                    input.checked = false;
+                } else {
+                    if (q.maxSelect && card.querySelectorAll('.option-label.selected').length >= q.maxSelect) return;
+                    this.classList.add('selected');
+                    input.checked = true;
+                }
+            }
+            card.classList.add('answered');
+            updateProgress();
+        });
+    });
+}
+
+function updateProgress() {
+    const answered = questions.filter(q => {
+        const card = document.querySelector(`[data-qid="${q.id}"].question-card`);
+        return card && card.querySelector('.option-label.selected');
+    }).length;
+    const pct = (answered / questions.length) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = answered + '/' + questions.length;
+}
+
+// ===== SUBMIT =====
+async function submitSurvey() {
+    const btn = document.getElementById('submit-btn');
+    const answers = {};
+    let firstUnanswered = null;
+
+    questions.forEach(q => {
+        const card = document.querySelector(`[data-qid="${q.id}"].question-card`);
+        const selected = card.querySelectorAll('.option-label.selected');
+        if (selected.length === 0) {
+            card.classList.add('error');
+            if (!firstUnanswered) firstUnanswered = card;
+        } else {
+            card.classList.remove('error');
+            answers[q.id] = Array.from(selected).map(s => s.querySelector('input').value);
+        }
+    });
+
+    if (firstUnanswered) {
+        firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast('Please answer all questions', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span>Submitting...';
+
+    try {
+        const res = await fetch('/api/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answers })
+        });
+        if (!res.ok) throw new Error('Submit failed');
+
+        document.getElementById('survey-section').style.display = 'none';
+        document.getElementById('success-screen').classList.add('active');
+    } catch (err) {
+        showToast('Failed to submit. Please try again.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'Submit Survey &#x1F99E;';
+    }
+}
+
+// ===== RESULTS =====
+let lastResultsData = null;
+
+async function fetchResults() {
+    try {
+        const res = await fetch('/api/results');
+        if (!res.ok) throw new Error();
+        return await res.json();
+    } catch {
+        return null;
+    }
+}
+
+function renderResults(data) {
+    if (!data) return;
+    lastResultsData = data;
+    const total = data.total || 0;
+
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-questions').textContent = questions.length;
+    document.getElementById('response-count-text').textContent =
+        total === 0 ? 'Waiting for responses...' : `${total} response${total !== 1 ? 's' : ''} collected`;
+
+    if (data.lastResponseTime) {
+        const ago = Math.round((Date.now() - data.lastResponseTime) / 1000);
+        document.getElementById('stat-latest').textContent =
+            ago < 5 ? 'Just now' : ago < 60 ? ago + 's ago' : Math.floor(ago / 60) + 'm ago';
+    }
+
+    const container = document.getElementById('results-container');
+    container.innerHTML = questions.map((q, qi) => {
+        const counts = data.questions[q.id] || {};
+        return `
+        <div class="result-card">
+            <h3><span class="question-number">${qi + 1}</span> ${q.text}</h3>
+            ${q.options.map(opt => {
+                const count = counts[opt] || 0;
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                return `
+                <div class="result-bar-row">
+                    <div class="result-bar-label">${opt}</div>
+                    <div class="result-bar-track">
+                        <div class="result-bar-fill" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="result-bar-value">${count} (${pct}%)</div>
+                </div>`;
+            }).join('')}
+        </div>`;
+    }).join('');
+}
+
+// Poll for live results
+let resultsPollInterval = null;
+
+function startResultsPolling() {
+    if (resultsPollInterval) return;
+    resultsPollInterval = setInterval(async () => {
+        const data = await fetchResults();
+        renderResults(data);
+    }, 3000);
+    // Immediate fetch
+    fetchResults().then(renderResults);
+}
+
+function stopResultsPolling() {
+    if (resultsPollInterval) {
+        clearInterval(resultsPollInterval);
+        resultsPollInterval = null;
+    }
+}
+
+// ===== RESET =====
+async function resetResults() {
+    if (!confirm('Reset ALL survey results? This cannot be undone.')) return;
+    try {
+        const res = await fetch('/api/reset', { method: 'POST' });
+        if (!res.ok) throw new Error();
+        showToast('All results have been reset');
+        const data = await fetchResults();
+        renderResults(data);
+    } catch {
+        showToast('Reset failed', 'error');
+    }
+}
+
+// ===== NAVIGATION =====
+document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        this.classList.add('active');
+        const section = this.dataset.section;
+        document.getElementById(section + '-section').classList.add('active');
+
+        if (section === 'results') {
+            startResultsPolling();
+        } else {
+            stopResultsPolling();
+        }
+    });
+});
+
+// ===== QR CODE =====
+function generateQR() {
+    const url = window.location.origin;
+    document.getElementById('survey-url').textContent = url;
+    new QRCode(document.getElementById('qr-code'), {
+        text: url,
+        width: 200,
+        height: 200,
+        colorDark: '#07080F',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
+}
+
+function copyURL() {
+    const url = document.getElementById('survey-url').textContent;
+    navigator.clipboard.writeText(url).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 1500);
+    });
+}
+
+// ===== INIT =====
+buildSurveyForm();
+setTimeout(generateQR, 200);
+</script>
+</body>
+</html>

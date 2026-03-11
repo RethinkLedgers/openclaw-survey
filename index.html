@@ -321,6 +321,65 @@
         .confirm-btn:hover { box-shadow: 0 4px 15px rgba(255, 107, 53, 0.25); }
         .confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* ===== DID YOU KNOW CARDS ===== */
+        .dyk-card {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(255, 107, 53, 0.06));
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dyk-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.03) 0%, transparent 60%);
+            animation: dykGlow 6s ease-in-out infinite;
+        }
+
+        @keyframes dykGlow {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10px, -10px); }
+        }
+
+        .dyk-card > * { position: relative; z-index: 1; }
+
+        .dyk-emoji {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 0 12px rgba(255, 107, 53, 0.3));
+        }
+
+        .dyk-label {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--claw-orange);
+            background: rgba(255, 107, 53, 0.08);
+            border: 1px solid rgba(255, 107, 53, 0.15);
+            border-radius: 20px;
+            padding: 0.2rem 0.7rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .dyk-fact {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.6;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
         .submitting-indicator {
             display: inline-block;
             width: 12px; height: 12px;
@@ -1035,15 +1094,49 @@ function showToast(msg, type = 'success') {
 // ===== STATE =====
 const submittedQuestions = new Set();
 
+// ===== DID YOU KNOW FACTS =====
+const dykFacts = [
+    {
+        emoji: '&#x1F99E;',
+        fact: 'OpenClaw\'s mascot is a lobster named Molty — a nerdy space lobster who believes AI should be owned by the people, not corporations.'
+    },
+    {
+        emoji: '&#x1F30D;',
+        fact: 'OpenClaw integrates with over 50 services including WhatsApp, Telegram, Discord, Slack, and Gmail — all from one AI brain.'
+    },
+    {
+        emoji: '&#x1F513;',
+        fact: 'OpenClaw is fully open-source. You can self-host it, fork it, or contribute to it. Your data stays yours — always.'
+    },
+    {
+        emoji: '&#x26A1;',
+        fact: 'OpenClaw can automate entire workflows: read your emails, schedule meetings, respond to customers, and analyze data — without writing code.'
+    }
+];
+
 // ===== BUILD SURVEY =====
 function buildSurveyForm() {
     const form = document.getElementById('survey-form');
+    let dykIndex = 0;
     form.innerHTML = questions.map((q, i) => {
         const inputType = q.type === 'single' ? 'radio' : 'checkbox';
         const note = q.type === 'multi'
             ? ` <span class="multi-note">(Select all that apply${q.maxSelect ? ', up to ' + q.maxSelect : ''})</span>` : '';
         const confirmBtn = q.type === 'multi'
             ? `<button class="confirm-btn" data-qid="${q.id}" style="display:none" onclick="confirmMulti('${q.id}')">Confirm Selection</button>` : '';
+
+        let dykCard = '';
+        // Insert a "Did You Know?" card after every 4 questions
+        if ((i + 1) % 4 === 0 && dykIndex < dykFacts.length) {
+            const dyk = dykFacts[dykIndex++];
+            dykCard = `
+            <div class="dyk-card">
+                <span class="dyk-emoji">${dyk.emoji}</span>
+                <span class="dyk-label">Did You Know?</span>
+                <p class="dyk-fact">${dyk.fact}</p>
+            </div>`;
+        }
+
         return `
         <div class="question-card" data-qid="${q.id}">
             <div class="q-title">
@@ -1060,7 +1153,7 @@ function buildSurveyForm() {
                 `).join('')}
             </div>
             ${confirmBtn}
-        </div>`;
+        </div>${dykCard}`;
     }).join('');
 
     form.querySelectorAll('.option-label').forEach(label => {

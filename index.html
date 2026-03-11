@@ -1743,25 +1743,28 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); changeSlide(-1); }
 });
 
-// Poll for live results — only re-render when data actually changes
+// Poll for live results — only re-render when new responses come in
 let resultsPollInterval = null;
-let lastResultsHash = '';
+let lastPollTotal = -1;
+let lastPollTimestamp = -1;
 
 function startResultsPolling() {
     if (resultsPollInterval) return;
     resultsPollInterval = setInterval(async () => {
         const data = await fetchResults();
         if (!data) return;
-        const hash = JSON.stringify({ t: data.total, l: data.lastResponseTime, q: data.questions });
-        if (hash !== lastResultsHash) {
-            lastResultsHash = hash;
+        // Only re-render if total or timestamp changed (= new response submitted)
+        if (data.total !== lastPollTotal || data.lastResponseTime !== lastPollTimestamp) {
+            lastPollTotal = data.total;
+            lastPollTimestamp = data.lastResponseTime;
             renderSlide(data);
         }
     }, 3000);
     // Immediate first fetch always renders
     fetchResults().then(data => {
         if (!data) return;
-        lastResultsHash = JSON.stringify({ t: data.total, l: data.lastResponseTime, q: data.questions });
+        lastPollTotal = data.total;
+        lastPollTimestamp = data.lastResponseTime;
         renderSlide(data);
     });
 }

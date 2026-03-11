@@ -73,13 +73,30 @@ export default async function handler(req, res) {
             }).filter(Boolean);
         });
 
+        // Aggregate masterclass responses per person (by email)
+        const mcByEmail = {};
+        ['q14', 'q15', 'q16'].forEach(qid => {
+            (individual[qid] || []).forEach(r => {
+                const key = r.email || r.name || 'unknown';
+                if (!mcByEmail[key]) {
+                    mcByEmail[key] = { name: r.name, email: r.email };
+                }
+                mcByEmail[key][qid] = r.values;
+                if (!mcByEmail[key].ts || r.ts > mcByEmail[key].ts) {
+                    mcByEmail[key].ts = r.ts;
+                }
+            });
+        });
+        const masterclass = Object.values(mcByEmail).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
         res.setHeader('Cache-Control', 's-maxage=1, stale-while-revalidate');
 
         return res.status(200).json({
             total: maxRespondents,
             lastResponseTime,
             questions,
-            individual
+            individual,
+            masterclass
         });
     } catch (err) {
         console.error('Results error:', err);

@@ -973,6 +973,131 @@
 
         .results-slide-area { overflow-y: auto; }
 
+        /* ===== MASTERCLASS TABLE ===== */
+        .mc-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .mc-stat {
+            flex: 1;
+            min-width: 140px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .mc-stat .mc-stat-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--gradient-claw);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mc-stat .mc-stat-lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+
+        .mc-table-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .mc-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        .mc-table thead th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.15);
+            background: rgba(124, 58, 237, 0.04);
+            position: sticky;
+            top: 0;
+        }
+
+        .mc-table tbody tr {
+            border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+            transition: background 0.15s;
+        }
+
+        .mc-table tbody tr:last-child { border-bottom: none; }
+        .mc-table tbody tr:hover { background: rgba(124, 58, 237, 0.04); }
+
+        .mc-table td {
+            padding: 0.65rem 1rem;
+            vertical-align: top;
+        }
+
+        .mc-table .mc-name {
+            font-weight: 600;
+            white-space: nowrap;
+            color: var(--text);
+        }
+
+        .mc-table .mc-email {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .mc-table .mc-answer {
+            color: var(--text);
+        }
+
+        .mc-tag {
+            display: inline-block;
+            background: rgba(255, 107, 53, 0.08);
+            border: 1px solid rgba(255, 107, 53, 0.15);
+            border-radius: 6px;
+            padding: 0.15rem 0.5rem;
+            margin: 0.1rem 0.15rem;
+            font-size: 0.7rem;
+            color: var(--claw-orange);
+        }
+
+        .mc-tag.interest-yes {
+            background: rgba(52, 211, 153, 0.08);
+            border-color: rgba(52, 211, 153, 0.2);
+            color: var(--success);
+        }
+
+        .mc-tag.interest-maybe {
+            background: rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+        }
+
+        .mc-tag.interest-no {
+            background: rgba(232, 67, 74, 0.06);
+            border-color: rgba(232, 67, 74, 0.15);
+            color: var(--claw-red);
+        }
+
+        .mc-empty {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 3rem;
+            font-size: 0.95rem;
+        }
+
         @media (max-width: 640px) {
             .results-topbar { padding: 0.5rem 1rem; }
             .results-slide-area { padding: 1rem; }
@@ -1172,6 +1297,7 @@
     <div class="nav-tabs">
         <button class="nav-tab active" data-section="survey">Survey</button>
         <button class="nav-tab" data-section="results">Live Results</button>
+        <button class="nav-tab" data-section="masterclass">Masterclass</button>
         <button class="nav-tab" data-section="qr">QR / Admin</button>
     </div>
 </nav>
@@ -1226,6 +1352,17 @@
         </div>
     </div>
     <div class="results-slide-area" id="results-slide-area"></div>
+</section>
+
+<!-- MASTERCLASS -->
+<section id="masterclass-section" class="section" style="max-width:1100px">
+    <div class="survey-header">
+        <span class="mascot">&#x1F99E;</span>
+        <h1><span class="highlight">Masterclass</span> Interest</h1>
+        <p>Individual responses for the OpenClaw Masterclass questions</p>
+        <div class="live-badge" style="margin-top:0.5rem"><span class="live-dot"></span> LIVE</div>
+    </div>
+    <div id="mc-table-container"></div>
 </section>
 
 <!-- QR / ADMIN -->
@@ -1881,6 +2018,78 @@ function stopResultsPolling() {
     }
 }
 
+// ===== MASTERCLASS TAB =====
+let mcPollInterval = null;
+
+function getInterestClass(val) {
+    if (!val) return '';
+    const v = val[0] || '';
+    if (v.startsWith('Yes')) return 'interest-yes';
+    if (v.startsWith('Maybe') || v.startsWith('Not sure')) return 'interest-maybe';
+    return 'interest-no';
+}
+
+function renderMasterclass(data) {
+    if (!data) return;
+    const mc = data.masterclass || [];
+    const container = document.getElementById('mc-table-container');
+
+    const interested = mc.filter(r => r.q14 && r.q14[0] && r.q14[0].startsWith('Yes')).length;
+    const maybe = mc.filter(r => r.q14 && r.q14[0] && (r.q14[0].startsWith('Maybe') || r.q14[0].startsWith('Not sure'))).length;
+
+    container.innerHTML = `
+    <div class="mc-stats">
+        <div class="mc-stat">
+            <div class="mc-stat-val">${mc.length}</div>
+            <div class="mc-stat-lbl">Respondents</div>
+        </div>
+        <div class="mc-stat">
+            <div class="mc-stat-val">${interested}</div>
+            <div class="mc-stat-lbl">Interested</div>
+        </div>
+        <div class="mc-stat">
+            <div class="mc-stat-val">${maybe}</div>
+            <div class="mc-stat-lbl">Maybe</div>
+        </div>
+    </div>
+    ${mc.length === 0 ? '<div class="mc-empty">No masterclass responses yet</div>' : `
+    <div class="mc-table-wrap">
+        <table class="mc-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Interested?</th>
+                    <th>Topics</th>
+                    <th>Price / Session</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${mc.map(r => `<tr>
+                    <td class="mc-name">${r.name || 'Anonymous'}</td>
+                    <td class="mc-email">${r.email || '-'}</td>
+                    <td class="mc-answer">${r.q14 ? `<span class="mc-tag ${getInterestClass(r.q14)}">${r.q14[0]}</span>` : '<span style="color:var(--text-muted)">-</span>'}</td>
+                    <td class="mc-answer">${r.q15 ? r.q15.map(v => `<span class="mc-tag">${v}</span>`).join(' ') : '<span style="color:var(--text-muted)">-</span>'}</td>
+                    <td class="mc-answer">${r.q16 ? `<span class="mc-tag">${r.q16[0]}</span>` : '<span style="color:var(--text-muted)">-</span>'}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
+    </div>`}`;
+}
+
+function startMcPolling() {
+    if (mcPollInterval) return;
+    fetchResults().then(renderMasterclass);
+    mcPollInterval = setInterval(async () => {
+        const data = await fetchResults();
+        renderMasterclass(data);
+    }, 5000);
+}
+
+function stopMcPolling() {
+    if (mcPollInterval) { clearInterval(mcPollInterval); mcPollInterval = null; }
+}
+
 // ===== RESET =====
 async function resetResults() {
     if (!confirm('Reset ALL survey results? This cannot be undone.')) return;
@@ -1931,6 +2140,11 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
             startResultsPolling();
         } else {
             stopResultsPolling();
+        }
+        if (section === 'masterclass') {
+            startMcPolling();
+        } else {
+            stopMcPolling();
         }
     });
 });

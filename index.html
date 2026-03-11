@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OpenClaw Survey</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -577,43 +578,50 @@
             animation: mascotBob 2s ease-in-out infinite;
         }
 
-        /* ===== RESULTS SECTION ===== */
-        #results-section { max-width: 960px; }
-
-        .results-header {
-            text-align: center;
-            margin-bottom: 2rem;
+        /* ===== RESULTS SECTION — FULL PAGE SLIDESHOW ===== */
+        #results-section {
+            max-width: 100%;
+            padding: 0;
+            height: calc(100vh - 52px);
+            display: none;
+            flex-direction: column;
         }
 
-        .results-header h1 {
-            font-size: 2rem;
-            font-weight: 800;
+        #results-section.active { display: flex; }
+
+        .results-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 2rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(7, 8, 15, 0.6);
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
         }
 
-        .results-header h1 .highlight {
-            background: var(--gradient-claw);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .results-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
         .live-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.3rem 0.8rem;
+            padding: 0.25rem 0.7rem;
             border-radius: 20px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
             background: rgba(52, 211, 153, 0.08);
             border: 1px solid rgba(52, 211, 153, 0.2);
             color: var(--success);
-            margin-top: 0.5rem;
         }
 
         .live-dot {
-            width: 6px;
-            height: 6px;
+            width: 6px; height: 6px;
             background: var(--success);
             border-radius: 50%;
             animation: pulse 1.5s infinite;
@@ -624,72 +632,130 @@
             50% { opacity: 0.5; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0); }
         }
 
-        .results-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+        .results-respondent-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--claw-orange);
+            font-weight: 600;
         }
 
-        .stat-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(10px);
+        .results-nav-btns {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .results-nav-btn {
+            width: 36px; height: 36px;
+            border-radius: 8px;
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.2rem;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .results-nav-btn:hover { background: rgba(124, 58, 237, 0.1); border-color: var(--claw-purple); }
+        .results-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .results-page-indicator {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 50px;
             text-align: center;
         }
 
-        .stat-card .stat-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 2.2rem;
-            font-weight: 700;
-            background: var(--gradient-claw);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .stat-card .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 0.2rem;
-            font-weight: 500;
-        }
-
-        .result-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.5rem;
-            margin-bottom: 1.25rem;
-            transition: border-color 0.3s;
-        }
-
-        .result-card:hover {
-            border-color: rgba(124, 58, 237, 0.2);
-        }
-
-        .result-card h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 1.2rem;
+        /* Slide area */
+        .results-slide-area {
+            flex: 1;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .result-slide {
+            width: 100%;
+            max-width: 900px;
+            animation: slideIn 0.35s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .result-slide-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .result-slide-qnum {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: var(--gradient-accent);
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .result-slide-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.4;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .result-slide-respondents {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+
+        .result-slide-body {
+            display: flex;
+            gap: 2rem;
             align-items: flex-start;
-            gap: 0.6rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .result-chart-container {
+            width: 320px;
+            height: 320px;
+            flex-shrink: 0;
+        }
+
+        .result-bars-container {
+            flex: 1;
+            min-width: 280px;
+            max-width: 500px;
         }
 
         .result-bar-row {
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.65rem;
         }
 
         .result-bar-label {
-            width: 200px;
+            width: 180px;
             flex-shrink: 0;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
             text-align: right;
             font-weight: 500;
@@ -697,29 +763,73 @@
 
         .result-bar-track {
             flex: 1;
-            height: 26px;
+            height: 30px;
             background: rgba(124, 58, 237, 0.06);
-            border-radius: 6px;
+            border-radius: 8px;
             overflow: hidden;
             border: 1px solid rgba(124, 58, 237, 0.06);
+            position: relative;
         }
 
         .result-bar-fill {
             height: 100%;
-            background: var(--gradient-bar);
-            border-radius: 5px;
-            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 7px;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
             min-width: 0;
-            box-shadow: 0 0 10px rgba(255, 107, 53, 0.15);
+            box-shadow: 0 0 12px rgba(255, 107, 53, 0.12);
         }
 
         .result-bar-value {
-            width: 70px;
+            width: 75px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             font-weight: 600;
             text-align: left;
             color: var(--claw-orange);
+        }
+
+        /* Overview slide */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-card .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-claw);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 640px) {
+            .results-topbar { padding: 0.5rem 1rem; }
+            .results-slide-area { padding: 1rem; }
+            .result-slide-title { font-size: 1.1rem; }
+            .result-chart-container { width: 220px; height: 220px; }
+            .result-bar-label { width: 110px; font-size: 0.72rem; }
+            .result-bar-value { width: 55px; font-size: 0.72rem; }
+            .result-slide-body { flex-direction: column; align-items: center; }
         }
 
         /* ===== QR SECTION ===== */
@@ -919,26 +1029,18 @@
 
 <!-- LIVE RESULTS -->
 <section id="results-section" class="section">
-    <div class="results-header">
-        <h1><span class="highlight">Live</span> Results</h1>
-        <p id="response-count-text" style="color:var(--text-muted)">Waiting for responses...</p>
-        <div class="live-badge"><span class="live-dot"></span> AUTO-REFRESHING</div>
-    </div>
-    <div class="results-stats">
-        <div class="stat-card">
-            <div class="stat-value" id="stat-total">0</div>
-            <div class="stat-label">Responses</div>
+    <div class="results-topbar">
+        <div class="results-topbar-left">
+            <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+            <span class="results-respondent-count" id="results-respondent-count">0 responses</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-value" id="stat-questions">16</div>
-            <div class="stat-label">Questions</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value" id="stat-latest">--</div>
-            <div class="stat-label">Last Response</div>
+        <div class="results-nav-btns">
+            <button class="results-nav-btn" id="results-prev" onclick="changeSlide(-1)">&#8592;</button>
+            <span class="results-page-indicator" id="results-page-indicator">0/17</span>
+            <button class="results-nav-btn" id="results-next" onclick="changeSlide(1)">&#8594;</button>
         </div>
     </div>
-    <div id="results-container"></div>
+    <div class="results-slide-area" id="results-slide-area"></div>
 </section>
 
 <!-- QR / ADMIN -->
@@ -1262,61 +1364,231 @@ async function confirmMulti(qid) {
     await submitQuestion(qid);
 }
 
-// ===== RESULTS =====
+// ===== RESULTS — FULL-PAGE SLIDESHOW =====
 let lastResultsData = null;
+let currentSlide = 0; // 0 = overview, 1-16 = questions
+let chartInstances = {};
+
+const CHART_COLORS = [
+    '#FF6B35', '#E8434A', '#7C3AED', '#3B82F6', '#14B8A6',
+    '#F59E0B', '#EC4899', '#8B5CF6', '#10B981', '#F97316',
+    '#6366F1', '#06B6D4', '#EF4444', '#84CC16', '#A855F7', '#F43F5E'
+];
 
 async function fetchResults() {
     try {
         const res = await fetch('/api/results');
         if (!res.ok) throw new Error();
         return await res.json();
-    } catch {
-        return null;
-    }
+    } catch { return null; }
 }
 
-function renderResults(data) {
+function destroyCharts() {
+    Object.values(chartInstances).forEach(c => c.destroy());
+    chartInstances = {};
+}
+
+function renderSlide(data) {
     if (!data) return;
     lastResultsData = data;
     const total = data.total || 0;
+    const totalSlides = questions.length + 1; // overview + 16
 
-    document.getElementById('stat-total').textContent = total;
-    document.getElementById('stat-questions').textContent = questions.length;
-    document.getElementById('response-count-text').textContent =
-        total === 0 ? 'Waiting for responses...' : `${total} response${total !== 1 ? 's' : ''} collected`;
+    document.getElementById('results-respondent-count').textContent =
+        `${total} response${total !== 1 ? 's' : ''}`;
+    document.getElementById('results-page-indicator').textContent =
+        `${currentSlide + 1}/${totalSlides}`;
+    document.getElementById('results-prev').disabled = currentSlide === 0;
+    document.getElementById('results-next').disabled = currentSlide >= totalSlides - 1;
 
-    if (data.lastResponseTime) {
-        const ago = Math.round((Date.now() - data.lastResponseTime) / 1000);
-        document.getElementById('stat-latest').textContent =
-            ago < 5 ? 'Just now' : ago < 60 ? ago + 's ago' : Math.floor(ago / 60) + 'm ago';
+    destroyCharts();
+    const area = document.getElementById('results-slide-area');
+
+    if (currentSlide === 0) {
+        // Overview slide
+        let lastTime = '--';
+        if (data.lastResponseTime) {
+            const ago = Math.round((Date.now() - data.lastResponseTime) / 1000);
+            lastTime = ago < 5 ? 'Just now' : ago < 60 ? ago + 's ago' : Math.floor(ago / 60) + 'm ago';
+        }
+        area.innerHTML = `
+        <div class="result-slide">
+            <div class="result-slide-header">
+                <span class="dyk-emoji" style="font-size:3.5rem">&#x1F99E;</span>
+                <div class="result-slide-title" style="font-size:2rem">Live Survey Results</div>
+                <p style="color:var(--text-muted);margin-top:0.5rem">Use arrows or keyboard to browse questions</p>
+            </div>
+            <div class="overview-grid">
+                <div class="stat-card">
+                    <div class="stat-value">${total}</div>
+                    <div class="stat-label">Total Responses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${questions.length}</div>
+                    <div class="stat-label">Questions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${lastTime}</div>
+                    <div class="stat-label">Last Response</div>
+                </div>
+            </div>
+        </div>`;
+        return;
     }
 
-    const container = document.getElementById('results-container');
-    container.innerHTML = questions.map((q, qi) => {
-        const qData = data.questions[q.id] || { counts: {}, total: 0 };
-        const counts = qData.counts || qData;
-        const qTotal = qData.total || Object.values(counts).reduce((a, b) => a + b, 0);
-        // For single-select: qTotal = respondents. For multi-select: qTotal = total selections.
-        // Use respondent count (total) for multi-select percentages so bars can exceed 100%.
-        const denominator = q.type === 'multi' ? (total || 1) : (qTotal || 1);
-        return `
-        <div class="result-card">
-            <h3><span class="question-number">${qi + 1}</span> ${q.text}</h3>
-            ${q.options.map(opt => {
-                const count = counts[opt] || 0;
-                const pct = qTotal > 0 ? Math.round((count / denominator) * 100) : 0;
-                return `
+    // Question slide
+    const qi = currentSlide - 1;
+    const q = questions[qi];
+    const qData = data.questions[q.id] || { counts: {}, total: 0 };
+    const counts = qData.counts || {};
+    const qTotal = qData.total || Object.values(counts).reduce((a, b) => a + b, 0);
+    const denominator = q.type === 'multi' ? (total || 1) : (qTotal || 1);
+
+    const labels = q.options;
+    const values = labels.map(o => counts[o] || 0);
+    const pcts = labels.map((_, i) => qTotal > 0 ? Math.round((values[i] / denominator) * 100) : 0);
+
+    // Choose chart type: doughnut for <=5 options (single), horizontal bar for more
+    const useDoughnut = q.type === 'single' && q.options.length <= 6;
+    const chartId = `chart-${qi}`;
+
+    area.innerHTML = `
+    <div class="result-slide" key="${qi}">
+        <div class="result-slide-header">
+            <div class="result-slide-qnum">${qi + 1}</div>
+            <div class="result-slide-title">${q.text}</div>
+            <div class="result-slide-respondents">${qTotal} response${qTotal !== 1 ? 's' : ''} to this question</div>
+        </div>
+        <div class="result-slide-body">
+            <div class="result-chart-container">
+                <canvas id="${chartId}"></canvas>
+            </div>
+            <div class="result-bars-container">
+                ${labels.map((opt, i) => `
                 <div class="result-bar-row">
                     <div class="result-bar-label">${opt}</div>
                     <div class="result-bar-track">
-                        <div class="result-bar-fill" style="width: ${Math.min(pct, 100)}%"></div>
+                        <div class="result-bar-fill" style="width:${Math.min(pcts[i], 100)}%;background:${CHART_COLORS[i % CHART_COLORS.length]}"></div>
                     </div>
-                    <div class="result-bar-value">${count} (${pct}%)</div>
-                </div>`;
-            }).join('')}
-        </div>`;
-    }).join('');
+                    <div class="result-bar-value">${values[i]} (${pcts[i]}%)</div>
+                </div>`).join('')}
+            </div>
+        </div>
+    </div>`;
+
+    // Render chart
+    const ctx = document.getElementById(chartId)?.getContext('2d');
+    if (!ctx) return;
+
+    if (useDoughnut) {
+        chartInstances[chartId] = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: CHART_COLORS.slice(0, labels.length),
+                    borderColor: 'rgba(7,8,15,0.8)',
+                    borderWidth: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '55%',
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#9999B0',
+                            font: { family: 'Inter', size: 11 },
+                            padding: 12,
+                            usePointStyle: true,
+                            pointStyleWidth: 10
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15,17,30,0.95)',
+                        titleColor: '#E8ECF4',
+                        bodyColor: '#E8ECF4',
+                        borderColor: 'rgba(124,58,237,0.2)',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            label: (c) => ` ${c.label}: ${c.raw} (${pcts[c.dataIndex]}%)`
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        chartInstances[chartId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: CHART_COLORS.slice(0, labels.length).map(c => c + 'CC'),
+                    borderColor: CHART_COLORS.slice(0, labels.length),
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { color: '#6B7194', font: { family: 'JetBrains Mono', size: 10 }, stepSize: 1 },
+                        grid: { color: 'rgba(124,58,237,0.06)' }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#9999B0',
+                            font: { family: 'Inter', size: 11 },
+                            callback: function(val) {
+                                const lbl = this.getLabelForValue(val);
+                                return lbl.length > 22 ? lbl.slice(0, 20) + '...' : lbl;
+                            }
+                        },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15,17,30,0.95)',
+                        titleColor: '#E8ECF4',
+                        bodyColor: '#E8ECF4',
+                        borderColor: 'rgba(124,58,237,0.2)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: (c) => ` ${c.raw} votes (${pcts[c.dataIndex]}%)`
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
+
+function changeSlide(dir) {
+    const totalSlides = questions.length + 1;
+    currentSlide = Math.max(0, Math.min(totalSlides - 1, currentSlide + dir));
+    renderSlide(lastResultsData);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('results-section').classList.contains('active')) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); changeSlide(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); changeSlide(-1); }
+});
 
 // Poll for live results
 let resultsPollInterval = null;
@@ -1325,10 +1597,9 @@ function startResultsPolling() {
     if (resultsPollInterval) return;
     resultsPollInterval = setInterval(async () => {
         const data = await fetchResults();
-        renderResults(data);
+        renderSlide(data);
     }, 3000);
-    // Immediate fetch
-    fetchResults().then(renderResults);
+    fetchResults().then(renderSlide);
 }
 
 function stopResultsPolling() {

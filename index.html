@@ -1876,8 +1876,7 @@ function buildSurveyForm() {
         const inputType = q.type === 'single' ? 'radio' : 'checkbox';
         const note = q.type === 'multi'
             ? ` <span class="multi-note">(Select all that apply${q.maxSelect ? ', up to ' + q.maxSelect : ''})</span>` : '';
-        const confirmBtn = q.type === 'multi'
-            ? `<button class="confirm-btn" data-qid="${q.id}" style="display:none" onclick="confirmMulti('${q.id}')">Confirm Selection</button>` : '';
+        const confirmBtn = `<button class="confirm-btn" data-qid="${q.id}" style="display:none" onclick="confirmAnswer('${q.id}')">Submit Answer</button>`;
 
         let dykCard = '';
         // Insert a "Did You Know?" card after every 4 questions
@@ -1925,10 +1924,6 @@ function buildSurveyForm() {
                 card.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
                 this.classList.add('selected');
                 input.checked = true;
-                card.classList.add('answered');
-                updateProgress();
-                // Single-select: submit immediately
-                submitQuestion(qid);
             } else {
                 if (this.classList.contains('selected')) {
                     this.classList.remove('selected');
@@ -1938,13 +1933,13 @@ function buildSurveyForm() {
                     this.classList.add('selected');
                     input.checked = true;
                 }
-                // Show/hide confirm button for multi-select
-                const hasSelection = card.querySelector('.option-label.selected');
-                const confirmBtn = card.querySelector('.confirm-btn');
-                if (confirmBtn) {
-                    confirmBtn.style.display = hasSelection ? 'inline-block' : 'none';
-                }
-                updateProgress();
+            }
+
+            // Show/hide submit button based on selection
+            const hasSelection = card.querySelector('.option-label.selected');
+            const confirmBtn = card.querySelector('.confirm-btn');
+            if (confirmBtn) {
+                confirmBtn.style.display = hasSelection ? 'inline-block' : 'none';
             }
         });
     });
@@ -2012,7 +2007,7 @@ async function submitQuestion(qid) {
     }
 }
 
-async function confirmMulti(qid) {
+async function confirmAnswer(qid) {
     await submitQuestion(qid);
 }
 

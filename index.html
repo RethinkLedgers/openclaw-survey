@@ -1210,8 +1210,8 @@
 
         .speakers-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.75rem;
             max-width: 900px;
             margin: 0 auto 2rem;
         }
@@ -1319,7 +1319,7 @@
         @media (max-width: 640px) {
             .intro-hero { min-height: 260px; }
             .intro-hero-content h1 { font-size: 1.6rem; }
-            .speakers-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+            .speakers-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
             .speaker-avatar { width: 56px; height: 56px; font-size: 1.1rem; }
         }
 

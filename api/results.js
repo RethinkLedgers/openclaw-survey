@@ -17,7 +17,7 @@ async function redis(commands) {
 }
 
 // Single-select question IDs (used to calculate unique respondents)
-const SINGLE_SELECT_IDS = [1, 2, 3, 5, 7, 9, 10, 11, 14, 15, 16, 17];
+const SINGLE_SELECT_IDS = [1, 2, 3, 5, 7, 9, 10, 11, 14, 16];
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
     try {
         const pipeline = [];
-        for (let i = 1; i <= 17; i++) {
+        for (let i = 1; i <= 16; i++) {
             pipeline.push(['HGETALL', `oc:q${i}`]);
         }
         pipeline.push(['GET', 'oc:lastResponseTime']);
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         const questions = {};
         let maxRespondents = 0;
 
-        for (let i = 0; i < 17; i++) {
+        for (let i = 0; i < 16; i++) {
             const hashData = results[i]?.result;
             const map = {};
             let qTotal = 0;
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
             }
         }
 
-        const lastResponseTime = parseInt(results[17]?.result, 10) || null;
+        const lastResponseTime = parseInt(results[16]?.result, 10) || null;
 
         res.setHeader('Cache-Control', 's-maxage=1, stale-while-revalidate');
 

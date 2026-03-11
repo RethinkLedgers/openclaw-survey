@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     try {
         // Delete all keys in one pipeline
         const pipeline = [];
-        for (let i = 1; i <= 17; i++) {
+        for (let i = 1; i <= 16; i++) {
             pipeline.push(['DEL', `oc:q${i}`]);
         }
         pipeline.push(['DEL', 'oc:total']);

@@ -1113,7 +1113,7 @@
     <div id="survey-content" style="display:none">
         <div class="progress-wrap">
             <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-            <span class="progress-text" id="progress-text">0/17</span>
+            <span class="progress-text" id="progress-text">0/16</span>
         </div>
         <div id="survey-form"></div>
     </div>
@@ -1136,7 +1136,7 @@
         </div>
         <div class="results-nav-btns">
             <button class="results-nav-btn" id="results-prev" onclick="changeSlide(-1)">&#8592;</button>
-            <span class="results-page-indicator" id="results-page-indicator">0/17</span>
+            <span class="results-page-indicator" id="results-page-indicator">0/16</span>
             <button class="results-nav-btn" id="results-next" onclick="changeSlide(1)">&#8594;</button>
         </div>
     </div>
@@ -1281,10 +1281,9 @@ const questions = [
     { id:'q11', text:'How likely are you to try a new AI tool like OpenClaw in the next 30 days?', type:'single', options:['Very unlikely','Unlikely','Neutral','Likely','Very likely'] },
     { id:'q12', text:'Which tools do you currently use that OpenClaw might improve or replace?', type:'multi', options:['ChatGPT or other AI tools','Zapier or automation tools','CRM systems','Project management tools','Customer support tools','None currently'] },
     { id:'q13', text:'What matters most when choosing an AI platform?', type:'multi', maxSelect:3, options:['Price','Ease of use','Powerful features','Security and privacy','Integrations with other tools','Customer support'] },
-    { id:'q14', text:'What pricing model would you prefer?', type:'single', options:['Free plan with limited features','Monthly subscription','Pay per usage','Enterprise licensing'] },
-    { id:'q15', text:'Would you be interested in trying OpenClaw?', type:'single', options:['Yes I want early access','Yes if there is a free trial','Maybe I want to learn more first','Not sure yet','No not interested right now'] },
-    { id:'q16', text:'Is this conversation helpful so far?', type:'single', options:['Yes very helpful','Somewhat helpful','Neutral','Not really','No'] },
-    { id:'q17', text:'Would you be interested in an OpenClaw MasterClass? (3–4 sessions, 1 session per week)', type:'single', options:['Yes definitely','Yes if the schedule works for me','Maybe I need more details','Not right now','No not interested'] }
+    { id:'q14', text:'Would you be interested in a paid 3-week OpenClaw Masterclass? (2 hrs every Friday afternoon — covering setup, agents, agentic tools, skills, and best practices)', type:'single', options:['Yes definitely','Yes if the price is right','Maybe I need more details','Not sure yet','No not interested'] },
+    { id:'q15', text:'What would you most want to learn in an OpenClaw Masterclass?', type:'multi', options:['Initial setup and configuration','Building custom AI agents','Agentic tools and integrations','Skills and workflow automation','Best practices and advanced tips','Real-world use cases and demos'] },
+    { id:'q16', text:'How much would you be willing to pay per session for the OpenClaw Masterclass? (3 sessions, 2 hrs each)', type:'single', options:['$50 per session','$100 per session','$150 per session','Only if it is free'] }
 ];
 
 // ===== TOAST =====

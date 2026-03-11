@@ -1110,6 +1110,219 @@
             .individual-table td, .individual-table th { padding: 0.4rem 0.5rem; }
         }
 
+        /* ===== INTRO SLIDE ===== */
+        #intro-section {
+            max-width: 100%;
+            padding: 0;
+            min-height: calc(100vh - 52px);
+            display: none;
+            flex-direction: column;
+        }
+        #intro-section.active { display: flex; }
+
+        .intro-hero {
+            position: relative;
+            width: 100%;
+            min-height: 340px;
+            background: url('images/event-bg.jpg') center center / cover no-repeat;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .intro-hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(7,8,15,0.3) 0%, rgba(7,8,15,0.85) 80%, var(--bg-deep) 100%);
+        }
+
+        .intro-hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem 1.5rem 2.5rem;
+            max-width: 750px;
+        }
+
+        .intro-event-badge {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--claw-orange);
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 20px;
+            padding: 0.3rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-hero-content h1 {
+            font-size: 2.4rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .intro-hero-content h1 .highlight {
+            background: var(--gradient-claw);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intro-hero-content .intro-subtitle {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.3rem;
+        }
+
+        .intro-hero-content .intro-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .intro-hero-content .intro-meta strong {
+            color: var(--claw-orange);
+        }
+
+        /* Speakers */
+        .intro-speakers-area {
+            flex: 1;
+            padding: 2rem 1.5rem 3rem;
+            background: var(--bg-deep);
+        }
+
+        .intro-speakers-title {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .speakers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto 2rem;
+        }
+
+        .speaker-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+
+        .speaker-card:hover {
+            border-color: rgba(255, 107, 53, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .speaker-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            margin: 0 auto 0.75rem;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            overflow: hidden;
+            border: 2px solid rgba(124, 58, 237, 0.3);
+        }
+
+        .speaker-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .speaker-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.2rem;
+        }
+
+        .speaker-title {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .intro-cta {
+            text-align: center;
+        }
+
+        .intro-cta-btn {
+            display: inline-block;
+            padding: 0.85rem 2.5rem;
+            background: var(--gradient-claw);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.25);
+            transition: all 0.25s;
+        }
+
+        .intro-cta-btn:hover {
+            box-shadow: 0 6px 30px rgba(255, 107, 53, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .intro-collab {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .intro-collab-label {
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .intro-collab-logos {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        @media (max-width: 640px) {
+            .intro-hero { min-height: 260px; }
+            .intro-hero-content h1 { font-size: 1.6rem; }
+            .speakers-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+            .speaker-avatar { width: 56px; height: 56px; font-size: 1.1rem; }
+        }
+
         /* ===== QR SECTION ===== */
         #qr-section { max-width: 600px; text-align: center; }
 
@@ -1295,15 +1508,79 @@
         <div class="nav-logo"><span class="open">Open</span><span class="claw">Claw</span></div>
     </div>
     <div class="nav-tabs">
-        <button class="nav-tab active" data-section="survey">Survey</button>
+        <button class="nav-tab active" data-section="intro">Event</button>
+        <button class="nav-tab" data-section="survey">Survey</button>
         <button class="nav-tab" data-section="results">Live Results</button>
         <button class="nav-tab" data-section="masterclass">Masterclass</button>
         <button class="nav-tab" data-section="qr">QR / Admin</button>
     </div>
 </nav>
 
+<!-- INTRO / EVENT -->
+<section id="intro-section" class="section active">
+    <div class="intro-hero">
+        <div class="intro-hero-overlay"></div>
+        <div class="intro-hero-content">
+            <div class="intro-event-badge">1st OpenClaw Community Night</div>
+            <h1>OpenClaw Community Night:<br><span class="highlight">Build, Share & Scale</span></h1>
+            <p class="intro-subtitle">OpenClaw in Action</p>
+            <p class="intro-meta">
+                <strong>March 11th, 2026</strong> &middot; 5:30 PM - 7:30 PM EST<br>
+                Tabbris, 1300 South Blvd, Charlotte, NC 28203
+            </p>
+        </div>
+    </div>
+    <div class="intro-speakers-area">
+        <div class="intro-speakers-title">Presented By</div>
+        <div class="speakers-grid">
+            <div class="speaker-card">
+                <div class="speaker-avatar" style="background:linear-gradient(135deg, #FF6B35, #E8434A)">BC</div>
+                <div class="speaker-name">Bart Cant</div>
+                <div class="speaker-title">Founder and CEO of Msg2ai</div>
+            </div>
+            <div class="speaker-card">
+                <div class="speaker-avatar" style="background:linear-gradient(135deg, #3B82F6, #7C3AED)">SF</div>
+                <div class="speaker-name">Stefan Friend</div>
+                <div class="speaker-title">Tabbris Executive Director</div>
+            </div>
+            <div class="speaker-card">
+                <div class="speaker-avatar" style="background:linear-gradient(135deg, #14B8A6, #3B82F6)">MD</div>
+                <div class="speaker-name">Mathew Dewald</div>
+                <div class="speaker-title">Fractional CFO & Consultant</div>
+            </div>
+            <div class="speaker-card">
+                <div class="speaker-avatar" style="background:linear-gradient(135deg, #7C3AED, #EC4899)">IG</div>
+                <div class="speaker-name">Igor Gorlatov</div>
+                <div class="speaker-title">Founder Advisory5</div>
+            </div>
+            <div class="speaker-card">
+                <div class="speaker-avatar" style="background:linear-gradient(135deg, #F59E0B, #FF6B35)">AR</div>
+                <div class="speaker-name">Andrew Reagan</div>
+                <div class="speaker-title">Fractional Staff Product Manager & Director of Product</div>
+            </div>
+            <div class="speaker-card">
+                <div class="speaker-avatar" style="background:linear-gradient(135deg, #E8434A, #7C3AED)">CD</div>
+                <div class="speaker-name">Charles D'Andrea</div>
+                <div class="speaker-title">Founder of 1Shot Labs</div>
+            </div>
+        </div>
+        <div class="intro-cta">
+            <button class="intro-cta-btn" onclick="document.querySelector('[data-section=survey]').click()">Take the Survey &#x1F99E;</button>
+        </div>
+        <div class="intro-collab">
+            <div class="intro-collab-label">In Collaboration With</div>
+            <div class="intro-collab-logos">
+                <span>Rethink Labs</span>
+                <span>MSG2AI</span>
+                <span>ActionNotes AI</span>
+                <span>Tabbris</span>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- SURVEY -->
-<section id="survey-section" class="section active">
+<section id="survey-section" class="section">
     <div class="survey-header">
         <span class="mascot">&#x1F99E;</span>
         <h1>Help <span class="highlight">OpenClaw</span> grow</h1>

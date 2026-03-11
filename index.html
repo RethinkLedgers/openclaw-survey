@@ -222,6 +222,74 @@
             color: var(--claw-purple);
         }
 
+        /* ===== INTRO GATE ===== */
+        .intro-gate {
+            text-align: center;
+            max-width: 420px;
+            margin: 0 auto 2rem;
+        }
+
+        .intro-gate .intro-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .intro-gate input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            border: 1.5px solid rgba(124, 58, 237, 0.2);
+            background: rgba(15, 17, 30, 0.65);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .intro-gate input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .intro-gate input:focus {
+            border-color: var(--claw-orange);
+            box-shadow: 0 0 12px rgba(255, 107, 53, 0.15);
+        }
+
+        .intro-gate input.input-error {
+            border-color: var(--claw-red);
+            box-shadow: 0 0 12px rgba(232, 67, 74, 0.15);
+        }
+
+        .intro-gate .start-survey-btn {
+            margin-top: 1rem;
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 10px;
+            background: var(--gradient-claw);
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.25);
+        }
+
+        .intro-gate .start-survey-btn:hover {
+            opacity: 0.9;
+            box-shadow: 0 4px 25px rgba(255, 107, 53, 0.35);
+        }
+
+        .intro-gate .intro-error {
+            color: var(--claw-red);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            min-height: 1.2em;
+        }
+
         /* ===== PROGRESS BAR ===== */
         .progress-wrap {
             margin-bottom: 2rem;
@@ -441,25 +509,25 @@
             gap: 0.75rem;
             padding: 0.7rem 1rem;
             border-radius: 10px;
-            border: 1px solid rgba(124, 58, 237, 0.08);
-            background: rgba(15, 17, 30, 0.5);
+            border: 1.5px solid rgba(124, 58, 237, 0.18);
+            background: rgba(15, 17, 30, 0.65);
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.9rem;
-            color: var(--text-muted);
+            color: var(--text);
         }
 
         .option-label:hover {
-            background: rgba(124, 58, 237, 0.06);
-            border-color: rgba(124, 58, 237, 0.2);
-            color: var(--text);
+            background: rgba(124, 58, 237, 0.1);
+            border-color: rgba(124, 58, 237, 0.35);
+            color: #fff;
         }
 
         .option-label.selected {
-            background: rgba(255, 107, 53, 0.08);
-            border-color: rgba(255, 107, 53, 0.35);
-            color: var(--text);
-            box-shadow: 0 0 15px rgba(255, 107, 53, 0.05);
+            background: rgba(255, 107, 53, 0.14);
+            border-color: rgba(255, 107, 53, 0.5);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.1);
         }
 
         .option-label input { display: none; }
@@ -468,7 +536,7 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            border: 2px solid rgba(124, 58, 237, 0.2);
+            border: 2px solid rgba(124, 58, 237, 0.35);
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -925,6 +993,26 @@
             transition: all 0.2s;
         }
 
+        .download-btn {
+            background: transparent;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            color: var(--claw-purple);
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+        }
+
+        .download-btn:hover {
+            background: var(--claw-purple);
+            color: white;
+            border-color: var(--claw-purple);
+        }
+
         .reset-btn:hover {
             background: var(--claw-red);
             color: white;
@@ -1011,12 +1099,24 @@
         <p>The AI that actually does things. Tell us what you need.</p>
         <span class="tag">open-source &middot; community-driven &middot; 2 min survey</span>
     </div>
-    <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-        <span class="progress-text" id="progress-text">0/16</span>
+    <!-- Intro gate: name + email -->
+    <div class="intro-gate" id="intro-gate">
+        <div class="intro-fields">
+            <input type="text" id="respondent-name" placeholder="Your name" autocomplete="name">
+            <input type="email" id="respondent-email" placeholder="Your email" autocomplete="email">
+            <button class="start-survey-btn" id="start-survey-btn" onclick="startSurvey()">Start Survey</button>
+            <div class="intro-error" id="intro-error"></div>
+        </div>
     </div>
-    <div id="survey-form"></div>
-    <!-- Questions submit individually as you answer them -->
+
+    <!-- Survey content (hidden until name+email entered) -->
+    <div id="survey-content" style="display:none">
+        <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+            <span class="progress-text" id="progress-text">0/17</span>
+        </div>
+        <div id="survey-form"></div>
+    </div>
 </section>
 
 <!-- SUCCESS -->
@@ -1061,6 +1161,7 @@
         </div>
         <div class="admin-controls">
             <h4>Admin Controls</h4>
+            <button class="download-btn" onclick="downloadCSV()">Download CSV</button>
             <button class="reset-btn" onclick="resetResults()">Reset All Results</button>
         </div>
     </div>
@@ -1182,7 +1283,8 @@ const questions = [
     { id:'q13', text:'What matters most when choosing an AI platform?', type:'multi', maxSelect:3, options:['Price','Ease of use','Powerful features','Security and privacy','Integrations with other tools','Customer support'] },
     { id:'q14', text:'What pricing model would you prefer?', type:'single', options:['Free plan with limited features','Monthly subscription','Pay per usage','Enterprise licensing'] },
     { id:'q15', text:'Would you be interested in trying OpenClaw?', type:'single', options:['Yes I want early access','Yes if there is a free trial','Maybe I want to learn more first','Not sure yet','No not interested right now'] },
-    { id:'q16', text:'Is this conversation helpful so far?', type:'single', options:['Yes very helpful','Somewhat helpful','Neutral','Not really','No'] }
+    { id:'q16', text:'Is this conversation helpful so far?', type:'single', options:['Yes very helpful','Somewhat helpful','Neutral','Not really','No'] },
+    { id:'q17', text:'Would you be interested in an OpenClaw MasterClass? (3–4 sessions, 1 session per week)', type:'single', options:['Yes definitely','Yes if the schedule works for me','Maybe I need more details','Not right now','No not interested'] }
 ];
 
 // ===== TOAST =====
@@ -1215,6 +1317,58 @@ const dykFacts = [
         fact: 'OpenClaw can automate entire workflows: read your emails, schedule meetings, respond to customers, and analyze data — without writing code.'
     }
 ];
+
+// ===== INTRO GATE =====
+let respondentName = '';
+let respondentEmail = '';
+
+function startSurvey() {
+    const nameInput = document.getElementById('respondent-name');
+    const emailInput = document.getElementById('respondent-email');
+    const errorEl = document.getElementById('intro-error');
+
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+
+    // Reset error states
+    nameInput.classList.remove('input-error');
+    emailInput.classList.remove('input-error');
+    errorEl.textContent = '';
+
+    if (!name && !email) {
+        nameInput.classList.add('input-error');
+        emailInput.classList.add('input-error');
+        errorEl.textContent = 'Please enter your name and email.';
+        nameInput.focus();
+        return;
+    }
+    if (!name) {
+        nameInput.classList.add('input-error');
+        errorEl.textContent = 'Please enter your name.';
+        nameInput.focus();
+        return;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        emailInput.classList.add('input-error');
+        errorEl.textContent = 'Please enter a valid email address.';
+        emailInput.focus();
+        return;
+    }
+
+    respondentName = name;
+    respondentEmail = email;
+
+    document.getElementById('intro-gate').style.display = 'none';
+    document.getElementById('survey-content').style.display = 'block';
+}
+
+// Allow Enter key to submit intro form
+document.getElementById('respondent-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('respondent-email').focus();
+});
+document.getElementById('respondent-email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startSurvey();
+});
 
 // ===== BUILD SURVEY =====
 function buildSurveyForm() {
@@ -1325,7 +1479,7 @@ async function submitQuestion(qid) {
         const res = await fetch('/api/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ qid, values, isFinal })
+            body: JSON.stringify({ qid, values, isFinal, name: respondentName, email: respondentEmail })
         });
         if (!res.ok) throw new Error('Submit failed');
 
@@ -1366,7 +1520,7 @@ async function confirmMulti(qid) {
 
 // ===== RESULTS — FULL-PAGE SLIDESHOW =====
 let lastResultsData = null;
-let currentSlide = 0; // 0 = overview, 1-16 = questions
+let currentSlide = 0; // 0 = overview, 1-17 = questions
 let chartInstances = {};
 
 const CHART_COLORS = [
@@ -1620,6 +1774,29 @@ async function resetResults() {
         renderResults(data);
     } catch {
         showToast('Reset failed', 'error');
+    }
+}
+
+// ===== DOWNLOAD CSV =====
+async function downloadCSV() {
+    const pwd = prompt('Enter admin password:');
+    if (!pwd) return;
+    try {
+        const res = await fetch('/api/export?password=' + encodeURIComponent(pwd));
+        if (res.status === 401) { showToast('Wrong password', 'error'); return; }
+        if (!res.ok) throw new Error();
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'openclaw-survey-results.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('CSV downloaded');
+    } catch {
+        showToast('Download failed', 'error');
     }
 }
 

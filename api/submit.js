@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { qid, values, isFinal } = req.body;
+        const { qid, values, isFinal, name, email } = req.body;
 
         // Validate
         if (!qid || !/^q\d+$/.test(qid)) {
@@ -39,6 +39,11 @@ export default async function handler(req, res) {
         for (const val of values) {
             if (typeof val !== 'string' || val.length > 200) continue;
             pipeline.push(['HINCRBY', `oc:${qid}`, val, 1]);
+        }
+
+        // Store respondent info (keyed by email to deduplicate)
+        if (name && email) {
+            pipeline.push(['HSET', 'oc:respondents', email, JSON.stringify({ name, email, ts: Date.now() })]);
         }
 
         // Only increment total respondent count on the final question

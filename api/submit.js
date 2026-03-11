@@ -46,6 +46,17 @@ export default async function handler(req, res) {
             pipeline.push(['HSET', 'oc:respondents', email, JSON.stringify({ name, email, ts: Date.now() })]);
         }
 
+        // Store individual responses for masterclass questions (q14, q15, q16)
+        const individualQids = ['q14', 'q15', 'q16'];
+        if (individualQids.includes(qid) && name) {
+            pipeline.push(['RPUSH', `oc:ind:${qid}`, JSON.stringify({
+                name: name || 'Anonymous',
+                email: email || '',
+                values,
+                ts: Date.now()
+            })]);
+        }
+
         // Only increment total respondent count on the final question
         if (isFinal) {
             pipeline.push(['INCR', 'oc:total']);

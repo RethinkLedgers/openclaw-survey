@@ -30,6 +30,9 @@ export default async function handler(req, res) {
         pipeline.push(['DEL', 'oc:total']);
         pipeline.push(['DEL', 'oc:lastResponseTime']);
         pipeline.push(['DEL', 'oc:respondents']);
+        pipeline.push(['DEL', 'oc:ind:q14']);
+        pipeline.push(['DEL', 'oc:ind:q15']);
+        pipeline.push(['DEL', 'oc:ind:q16']);
 
         await redis(pipeline);
 

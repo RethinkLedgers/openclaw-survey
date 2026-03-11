@@ -890,6 +890,89 @@
             font-weight: 500;
         }
 
+        /* ===== INDIVIDUAL RESPONSES TABLE ===== */
+        .individual-section {
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+
+        .individual-section h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--claw-orange);
+            margin-bottom: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .individual-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        .individual-table thead th {
+            text-align: left;
+            padding: 0.6rem 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.15);
+            background: rgba(124, 58, 237, 0.04);
+        }
+
+        .individual-table tbody tr {
+            border-bottom: 1px solid rgba(124, 58, 237, 0.06);
+            transition: background 0.15s;
+        }
+
+        .individual-table tbody tr:hover {
+            background: rgba(124, 58, 237, 0.04);
+        }
+
+        .individual-table td {
+            padding: 0.55rem 0.75rem;
+            color: var(--text);
+            vertical-align: top;
+        }
+
+        .individual-table td.name-cell {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .individual-table td.email-cell {
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+        }
+
+        .individual-table td.answer-cell {
+            color: var(--claw-orange);
+        }
+
+        .individual-table .answer-tag {
+            display: inline-block;
+            background: rgba(255, 107, 53, 0.08);
+            border: 1px solid rgba(255, 107, 53, 0.15);
+            border-radius: 6px;
+            padding: 0.15rem 0.5rem;
+            margin: 0.1rem 0.2rem;
+            font-size: 0.72rem;
+        }
+
+        .individual-empty {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem;
+            font-size: 0.85rem;
+        }
+
+        .results-slide-area { overflow-y: auto; }
+
         @media (max-width: 640px) {
             .results-topbar { padding: 0.5rem 1rem; }
             .results-slide-area { padding: 1rem; }
@@ -898,6 +981,8 @@
             .result-bar-label { width: 110px; font-size: 0.72rem; }
             .result-bar-value { width: 55px; font-size: 0.72rem; }
             .result-slide-body { flex-direction: column; align-items: center; }
+            .individual-table { font-size: 0.72rem; }
+            .individual-table td, .individual-table th { padding: 0.4rem 0.5rem; }
         }
 
         /* ===== QR SECTION ===== */
@@ -1605,6 +1690,25 @@ function renderSlide(data) {
     const useDoughnut = q.type === 'single' && q.options.length <= 6;
     const chartId = `chart-${qi}`;
 
+    // Individual responses for masterclass questions (q14, q15, q16)
+    const isMasterclassQ = ['q14', 'q15', 'q16'].includes(q.id);
+    const indResponses = isMasterclassQ && data.individual ? (data.individual[q.id] || []) : [];
+    const individualHTML = isMasterclassQ ? `
+        <div class="individual-section">
+            <h4>Individual Responses (${indResponses.length})</h4>
+            ${indResponses.length === 0 ? '<div class="individual-empty">No individual responses yet</div>' : `
+            <table class="individual-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Answer</th></tr></thead>
+                <tbody>
+                    ${indResponses.map(r => `<tr>
+                        <td class="name-cell">${r.name || 'Anonymous'}</td>
+                        <td class="email-cell">${r.email || '-'}</td>
+                        <td class="answer-cell">${r.values.map(v => `<span class="answer-tag">${v}</span>`).join(' ')}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>`}
+        </div>` : '';
+
     area.innerHTML = `
     <div class="result-slide" key="${qi}">
         <div class="result-slide-header">
@@ -1627,6 +1731,7 @@ function renderSlide(data) {
                 </div>`).join('')}
             </div>
         </div>
+        ${individualHTML}
     </div>`;
 
     // Render chart

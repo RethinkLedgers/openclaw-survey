@@ -30,6 +30,10 @@ export default async function handler(req, res) {
             pipeline.push(['HGETALL', `oc:q${i}`]);
         }
         pipeline.push(['GET', 'oc:lastResponseTime']);
+        // Fetch individual responses for masterclass questions
+        pipeline.push(['LRANGE', 'oc:ind:q14', 0, -1]);
+        pipeline.push(['LRANGE', 'oc:ind:q15', 0, -1]);
+        pipeline.push(['LRANGE', 'oc:ind:q16', 0, -1]);
 
         const results = await redis(pipeline);
 
@@ -60,12 +64,22 @@ export default async function handler(req, res) {
 
         const lastResponseTime = parseInt(results[16]?.result, 10) || null;
 
+        // Parse individual responses for q14-q16
+        const individual = {};
+        ['q14', 'q15', 'q16'].forEach((qid, idx) => {
+            const raw = results[17 + idx]?.result || [];
+            individual[qid] = raw.map(item => {
+                try { return JSON.parse(item); } catch { return null; }
+            }).filter(Boolean);
+        });
+
         res.setHeader('Cache-Control', 's-maxage=1, stale-while-revalidate');
 
         return res.status(200).json({
             total: maxRespondents,
             lastResponseTime,
-            questions
+            questions,
+            individual
         });
     } catch (err) {
         console.error('Results error:', err);

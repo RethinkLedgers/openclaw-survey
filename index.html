@@ -1743,16 +1743,27 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); changeSlide(-1); }
 });
 
-// Poll for live results
+// Poll for live results — only re-render when data actually changes
 let resultsPollInterval = null;
+let lastResultsHash = '';
 
 function startResultsPolling() {
     if (resultsPollInterval) return;
     resultsPollInterval = setInterval(async () => {
         const data = await fetchResults();
-        renderSlide(data);
+        if (!data) return;
+        const hash = JSON.stringify({ t: data.total, l: data.lastResponseTime, q: data.questions });
+        if (hash !== lastResultsHash) {
+            lastResultsHash = hash;
+            renderSlide(data);
+        }
     }, 3000);
-    fetchResults().then(renderSlide);
+    // Immediate first fetch always renders
+    fetchResults().then(data => {
+        if (!data) return;
+        lastResultsHash = JSON.stringify({ t: data.total, l: data.lastResponseTime, q: data.questions });
+        renderSlide(data);
+    });
 }
 
 function stopResultsPolling() {

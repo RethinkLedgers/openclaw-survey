@@ -1487,6 +1487,18 @@
             .result-bar-value { width: 55px; font-size: 0.72rem; }
             .qr-card { padding: 1.5rem; }
         }
+        .survey-nav { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:1.5rem; }
+        .snav-btn { padding:0.7rem 1.4rem; border-radius:10px; border:1px solid var(--border); background:var(--bg-card); color:var(--text); font-weight:600; font-size:0.95rem; cursor:pointer; transition:border-color 0.2s, opacity 0.2s; }
+        .snav-btn:hover:not(:disabled) { border-color: var(--claw-orange); }
+        .snav-btn:disabled { opacity:0.35; cursor:not-allowed; }
+        .snav-primary { background: var(--gradient-claw); border:none; color:#fff; }
+        .snav-pos { font-size:0.75rem; color: var(--text-muted); font-family:'JetBrains Mono', monospace; }
+        .q-live { margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border); }
+        .qlive-head { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color: var(--claw-orange); margin-bottom:0.75rem; }
+        .qlive-row { margin-bottom:0.6rem; }
+        .qlive-meta { display:flex; justify-content:space-between; font-size:0.85rem; color: var(--text); margin-bottom:0.25rem; }
+        .qlive-track { height:10px; border-radius:6px; background: rgba(255,255,255,0.08); overflow:hidden; }
+        .qlive-fill { height:100%; border-radius:6px; background: var(--gradient-claw); transition: width 0.5s ease; }
     </style>
 </head>
 <body>
@@ -1595,6 +1607,11 @@
             <span class="progress-text" id="progress-text">0/20</span>
         </div>
         <div id="survey-form"></div>
+        <div id="survey-nav" class="survey-nav" style="display:none">
+            <button id="nav-back" class="snav-btn" onclick="prevQuestion()">&#8592; Back</button>
+            <span id="nav-position" class="snav-pos"></span>
+            <button id="nav-next" class="snav-btn snav-primary" onclick="nextQuestion()">Next &#8594;</button>
+        </div>
     </div>
 </section>
 
@@ -1850,6 +1867,8 @@ function startSurvey() {
 
     document.getElementById('intro-gate').style.display = 'none';
     document.getElementById('survey-content').style.display = 'block';
+    if (!surveyPoll) surveyPoll = setInterval(fetchSurveyResults, 4000);
+    fetchSurveyResults();
 }
 
 // Allow Enter key to submit intro form
@@ -1863,27 +1882,12 @@ document.getElementById('respondent-email').addEventListener('keydown', e => {
 // ===== BUILD SURVEY =====
 function buildSurveyForm() {
     const form = document.getElementById('survey-form');
-    let dykIndex = 0;
     form.innerHTML = questions.map((q, i) => {
         const inputType = q.type === 'single' ? 'radio' : 'checkbox';
         const note = q.type === 'multi'
             ? ` <span class="multi-note">(Select all that apply${q.maxSelect ? ', up to ' + q.maxSelect : ''})</span>` : '';
-        const confirmBtn = `<button class="confirm-btn" data-qid="${q.id}" style="display:none" onclick="confirmAnswer('${q.id}')">Submit Answer</button>`;
-
-        let dykCard = '';
-        // Insert a "Did You Know?" card after every 4 questions
-        if ((i + 1) % 4 === 0 && dykIndex < dykFacts.length) {
-            const dyk = dykFacts[dykIndex++];
-            dykCard = `
-            <div class="dyk-card">
-                <span class="dyk-emoji">${dyk.emoji}</span>
-                <span class="dyk-label">Did You Know?</span>
-                <p class="dyk-fact">${dyk.fact}</p>
-            </div>`;
-        }
-
         return `
-        <div class="question-card" data-qid="${q.id}">
+        <div class="question-card" data-qid="${q.id}" style="display:none">
             <div class="q-title">
                 <span class="question-number">${i + 1}</span>
                 <h3>${q.text}${note}</h3>
@@ -1897,8 +1901,8 @@ function buildSurveyForm() {
                     </label>
                 `).join('')}
             </div>
-            ${confirmBtn}
-        </div>${dykCard}`;
+            <div class="q-live" id="qlive-${q.id}" style="display:none"></div>
+        </div>`;
     }).join('');
 
     form.querySelectorAll('.option-label').forEach(label => {
@@ -1916,6 +1920,8 @@ function buildSurveyForm() {
                 card.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
                 this.classList.add('selected');
                 input.checked = true;
+                // Single-select: a tap is a vote — record it and reveal live results.
+                submitQuestion(qid);
             } else {
                 if (this.classList.contains('selected')) {
                     this.classList.remove('selected');
@@ -1926,15 +1932,11 @@ function buildSurveyForm() {
                     input.checked = true;
                 }
             }
-
-            // Show/hide submit button based on selection
-            const hasSelection = card.querySelector('.option-label.selected');
-            const confirmBtn = card.querySelector('.confirm-btn');
-            if (confirmBtn) {
-                confirmBtn.style.display = hasSelection ? 'inline-block' : 'none';
-            }
         });
     });
+
+    showQuestion(0);
+    document.getElementById('survey-nav').style.display = 'flex';
 }
 
 function updateProgress() {
@@ -1976,22 +1978,15 @@ async function submitQuestion(qid) {
         spinner.remove();
         const badge = document.createElement('span');
         badge.className = 'submitted-badge';
-        badge.innerHTML = '&#10003; Saved';
+        badge.innerHTML = '&#10003; Voted';
         title.appendChild(badge);
-
-        // Hide confirm button
-        const confirmBtn = card.querySelector('.confirm-btn');
-        if (confirmBtn) confirmBtn.style.display = 'none';
 
         updateProgress();
 
-        // If all done, show success
-        if (submittedQuestions.size === questions.length) {
-            setTimeout(() => {
-                document.getElementById('survey-section').style.display = 'none';
-                document.getElementById('success-screen').classList.add('active');
-            }, 600);
-        }
+        // Reveal this question's live results and refresh the tally.
+        const live = document.getElementById('qlive-' + qid);
+        if (live) live.style.display = 'block';
+        fetchSurveyResults();
     } catch {
         spinner.remove();
         showToast('Failed to save answer. Tap to retry.', 'error');
@@ -1999,8 +1994,85 @@ async function submitQuestion(qid) {
     }
 }
 
-async function confirmAnswer(qid) {
-    await submitQuestion(qid);
+// ===== ONE-QUESTION-PER-PAGE NAVIGATION =====
+let currentQ = 0;
+let surveyPoll = null;
+let surveyResults = null;
+
+function showQuestion(i) {
+    currentQ = i;
+    document.querySelectorAll('#survey-form .question-card').forEach((c, idx) => {
+        c.style.display = idx === i ? 'block' : 'none';
+    });
+
+    const back = document.getElementById('nav-back');
+    const next = document.getElementById('nav-next');
+    const pos = document.getElementById('nav-position');
+    if (back) back.disabled = i === 0;
+    if (next) next.innerHTML = (i === questions.length - 1) ? 'Finish &#10003;' : 'Next &#8594;';
+    if (pos) pos.textContent = `Question ${i + 1} of ${questions.length}`;
+
+    const q = questions[i];
+    const live = document.getElementById('qlive-' + q.id);
+    if (live) live.style.display = submittedQuestions.has(q.id) ? 'block' : 'none';
+    renderCurrentLive();
+
+    document.getElementById('survey-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function nextQuestion() {
+    const q = questions[currentQ];
+    if (!submittedQuestions.has(q.id)) {
+        const card = document.querySelector(`[data-qid="${q.id}"].question-card`);
+        if (card) card.classList.add('error');
+        showToast('Select an answer to continue.', 'error');
+        return;
+    }
+    if (currentQ < questions.length - 1) showQuestion(currentQ + 1);
+    else showSuccess();
+}
+
+function prevQuestion() {
+    if (currentQ > 0) showQuestion(currentQ - 1);
+}
+
+function showSuccess() {
+    if (surveyPoll) { clearInterval(surveyPoll); surveyPoll = null; }
+    document.getElementById('survey-section').style.display = 'none';
+    document.getElementById('success-screen').classList.add('active');
+}
+
+// ===== LIVE RESULTS ON EACH QUESTION PAGE =====
+async function fetchSurveyResults() {
+    try {
+        const res = await fetch('/api/results');
+        if (!res.ok) return;
+        surveyResults = await res.json();
+        renderCurrentLive();
+    } catch { /* ignore transient errors */ }
+}
+
+function renderCurrentLive() {
+    const q = questions[currentQ];
+    if (q && submittedQuestions.has(q.id)) renderQuestionLive(q.id);
+}
+
+function renderQuestionLive(qid) {
+    const container = document.getElementById('qlive-' + qid);
+    if (!container || !surveyResults || !surveyResults.questions) return;
+    const qd = surveyResults.questions[qid] || { counts: {}, total: 0 };
+    const q = questions.find(x => x.id === qid);
+    const total = qd.total || 0;
+    const rows = q.options.map(opt => {
+        const c = qd.counts[opt] || 0;
+        const pct = total ? Math.round((c / total) * 100) : 0;
+        return `
+        <div class="qlive-row">
+            <div class="qlive-meta"><span>${opt}</span><span>${pct}% &middot; ${c}</span></div>
+            <div class="qlive-track"><div class="qlive-fill" style="width:${pct}%"></div></div>
+        </div>`;
+    }).join('');
+    container.innerHTML = `<div class="qlive-head">Live results &middot; ${total} vote${total === 1 ? '' : 's'}</div>${rows}`;
 }
 
 // ===== RESULTS — FULL-PAGE SLIDESHOW =====

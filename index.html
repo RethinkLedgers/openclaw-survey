@@ -2491,7 +2491,10 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 
 // ===== QR CODE =====
 function generateQR() {
-    const url = window.location.origin;
+    // Always use the stable public production alias — deployment-specific URLs
+    // (…-<hash>-rethink-labs.vercel.app) are gated by Vercel auth, which would
+    // block anyone scanning the code.
+    const url = 'https://openclaw-survey-liart.vercel.app';
     document.getElementById('survey-url').textContent = url;
     new QRCode(document.getElementById('qr-code'), {
         text: url,

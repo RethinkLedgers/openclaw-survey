@@ -16,9 +16,6 @@ async function redis(commands) {
     return res.json();
 }
 
-// Single-select question IDs (used to calculate unique respondents)
-const SINGLE_SELECT_IDS = [1, 2, 3, 5, 7, 9, 10, 11, 14, 16];
-
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -26,21 +23,17 @@ export default async function handler(req, res) {
 
     try {
         const pipeline = [];
-        for (let i = 1; i <= 16; i++) {
+        for (let i = 1; i <= 20; i++) {
             pipeline.push(['HGETALL', `oc:q${i}`]);
         }
         pipeline.push(['GET', 'oc:lastResponseTime']);
-        // Fetch individual responses for masterclass questions
-        pipeline.push(['LRANGE', 'oc:ind:q14', 0, -1]);
-        pipeline.push(['LRANGE', 'oc:ind:q15', 0, -1]);
-        pipeline.push(['LRANGE', 'oc:ind:q16', 0, -1]);
 
         const results = await redis(pipeline);
 
         const questions = {};
         let maxRespondents = 0;
 
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 20; i++) {
             const hashData = results[i]?.result;
             const map = {};
             let qTotal = 0;
@@ -55,48 +48,21 @@ export default async function handler(req, res) {
 
             questions[`q${i + 1}`] = { counts: map, total: qTotal };
 
-            // For single-select questions, total votes = unique respondents
-            // Use the max across single-select questions as best estimate
-            if (SINGLE_SELECT_IDS.includes(i + 1) && qTotal > maxRespondents) {
+            // Every question is single-select (one answer), so the busiest
+            // question's vote count best estimates unique respondents.
+            if (qTotal > maxRespondents) {
                 maxRespondents = qTotal;
             }
         }
 
-        const lastResponseTime = parseInt(results[16]?.result, 10) || null;
-
-        // Parse individual responses for q14-q16
-        const individual = {};
-        ['q14', 'q15', 'q16'].forEach((qid, idx) => {
-            const raw = results[17 + idx]?.result || [];
-            individual[qid] = raw.map(item => {
-                try { return JSON.parse(item); } catch { return null; }
-            }).filter(Boolean);
-        });
-
-        // Aggregate masterclass responses per person (by email)
-        const mcByEmail = {};
-        ['q14', 'q15', 'q16'].forEach(qid => {
-            (individual[qid] || []).forEach(r => {
-                const key = r.email || r.name || 'unknown';
-                if (!mcByEmail[key]) {
-                    mcByEmail[key] = { name: r.name, email: r.email };
-                }
-                mcByEmail[key][qid] = r.values;
-                if (!mcByEmail[key].ts || r.ts > mcByEmail[key].ts) {
-                    mcByEmail[key].ts = r.ts;
-                }
-            });
-        });
-        const masterclass = Object.values(mcByEmail).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+        const lastResponseTime = parseInt(results[20]?.result, 10) || null;
 
         res.setHeader('Cache-Control', 's-maxage=1, stale-while-revalidate');
 
         return res.status(200).json({
             total: maxRespondents,
             lastResponseTime,
-            questions,
-            individual,
-            masterclass
+            questions
         });
     } catch (err) {
         console.error('Results error:', err);

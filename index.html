@@ -1124,7 +1124,7 @@
             position: relative;
             width: 100%;
             min-height: 340px;
-            background: url('images/event-bg.jpg') center center / cover no-repeat;
+            background: linear-gradient(135deg, #0a0f1e 0%, #1b1340 100%);
             display: flex;
             align-items: flex-end;
             justify-content: center;
@@ -1504,14 +1504,12 @@
 <!-- Navigation -->
 <nav class="nav">
     <div class="nav-brand">
-        <span class="nav-lobster">&#x1F99E;</span>
-        <div class="nav-logo"><span class="open">Open</span><span class="claw">Claw</span></div>
+        <div class="nav-logo"><span class="open">Signal</span><span class="claw">&nbsp;&amp; Noise</span></div>
     </div>
     <div class="nav-tabs">
         <button class="nav-tab active" data-section="intro">Event</button>
         <button class="nav-tab" data-section="survey">Survey</button>
         <button class="nav-tab" data-section="results">Live Results</button>
-        <button class="nav-tab" data-section="masterclass">Masterclass</button>
         <button class="nav-tab" data-section="qr">QR / Admin</button>
     </div>
 </nav>
@@ -1521,9 +1519,9 @@
     <div class="intro-hero">
         <div class="intro-hero-overlay"></div>
         <div class="intro-hero-content">
-            <div class="intro-event-badge">1st OpenClaw Community Night</div>
+            <div class="intro-event-badge">Charlotte Fintech Week</div>
             <h1>Signal and Noise <span class="highlight">Debate</span></h1>
-            <p class="intro-subtitle">OpenClaw in Action</p>
+            <p class="intro-subtitle">AI vs. Financial Services</p>
             <p class="intro-meta">
                 <strong>March 11th, 2026</strong> &middot; 5:30 PM - 7:30 PM EST<br>
                 Tabbris, 1300 South Blvd, Charlotte, NC 28203
@@ -1559,7 +1557,7 @@
             </div>
         </div>
         <div class="intro-cta">
-            <button class="intro-cta-btn" onclick="document.querySelector('[data-section=survey]').click()">Take the Survey &#x1F99E;</button>
+            <button class="intro-cta-btn" onclick="document.querySelector('[data-section=survey]').click()">Cast your vote &#x1F5F3;&#xFE0F;</button>
         </div>
         <div class="intro-collab">
             <div class="intro-collab-label">In Collaboration With</div>
@@ -1576,10 +1574,9 @@
 <!-- SURVEY -->
 <section id="survey-section" class="section">
     <div class="survey-header">
-        <span class="mascot">&#x1F99E;</span>
-        <h1>Help <span class="highlight">OpenClaw</span> grow</h1>
-        <p>The AI that actually does things. Tell us what you need.</p>
-        <span class="tag">open-source &middot; community-driven &middot; 2 min survey</span>
+        <h1>Cast your <span class="highlight">vote</span></h1>
+        <p>Where do you stand? Vote Yes or No on each question.</p>
+        <span class="tag">AI vs. Financial Services &middot; live debate poll &middot; 2 min</span>
     </div>
     <!-- Intro gate: name + email -->
     <div class="intro-gate" id="intro-gate">
@@ -1595,7 +1592,7 @@
     <div id="survey-content" style="display:none">
         <div class="progress-wrap">
             <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-            <span class="progress-text" id="progress-text">0/16</span>
+            <span class="progress-text" id="progress-text">0/20</span>
         </div>
         <div id="survey-form"></div>
     </div>
@@ -1605,8 +1602,7 @@
 <div class="success-screen" id="success-screen">
     <div class="success-icon">&#10003;</div>
     <h2>You're awesome!</h2>
-    <p>Your voice shapes the future of OpenClaw. Thank you!</p>
-    <span class="lobster-wave">&#x1F99E;</span>
+    <p>Your voice shapes the debate. Thank you!</p>
 </div>
 
 <!-- LIVE RESULTS -->
@@ -1618,7 +1614,7 @@
         </div>
         <div class="results-nav-btns">
             <button class="results-nav-btn" id="results-prev" onclick="changeSlide(-1)">&#8592;</button>
-            <span class="results-page-indicator" id="results-page-indicator">0/16</span>
+            <span class="results-page-indicator" id="results-page-indicator">0/20</span>
             <button class="results-nav-btn" id="results-next" onclick="changeSlide(1)">&#8594;</button>
         </div>
     </div>
@@ -1628,9 +1624,8 @@
 <!-- MASTERCLASS -->
 <section id="masterclass-section" class="section" style="max-width:1100px">
     <div class="survey-header">
-        <span class="mascot">&#x1F99E;</span>
-        <h1><span class="highlight">Masterclass</span> Interest</h1>
-        <p>Individual responses for the OpenClaw Masterclass questions</p>
+        <h1><span class="highlight">Response</span> detail</h1>
+        <p>Individual responses</p>
         <div class="live-badge" style="margin-top:0.5rem"><span class="live-dot"></span> LIVE</div>
     </div>
     <div id="mc-table-container"></div>
@@ -1639,7 +1634,6 @@
 <!-- QR / ADMIN -->
 <section id="qr-section" class="section">
     <div class="survey-header">
-        <span class="mascot">&#x1F99E;</span>
         <h1>Share the <span class="highlight">Survey</span></h1>
         <p>Scan this QR code to jump straight to the survey</p>
     </div>
@@ -1797,20 +1791,20 @@ const submittedQuestions = new Set();
 // ===== DID YOU KNOW FACTS =====
 const dykFacts = [
     {
-        emoji: '&#x1F99E;',
-        fact: 'OpenClaw\'s mascot is a lobster named Molty — a nerdy space lobster who believes AI should be owned by the people, not corporations.'
+        emoji: '&#x1F4C8;',
+        fact: 'AI-powered fraud detection can flag suspicious transactions in milliseconds — scanning patterns no human team could review in time.'
     },
     {
-        emoji: '&#x1F30D;',
-        fact: 'OpenClaw integrates with over 50 services including WhatsApp, Telegram, Discord, Slack, and Gmail — all from one AI brain.'
+        emoji: '&#x1F916;',
+        fact: 'Most large banks already run AI behind the scenes: credit scoring, anti-money-laundering checks, and customer-service chatbots.'
     },
     {
-        emoji: '&#x1F513;',
-        fact: 'OpenClaw is fully open-source. You can self-host it, fork it, or contribute to it. Your data stays yours — always.'
+        emoji: '&#x2696;&#xFE0F;',
+        fact: 'Regulators are racing to keep up — debating how to audit "black box" AI models that drive lending and trading decisions.'
     },
     {
         emoji: '&#x26A1;',
-        fact: 'OpenClaw can automate entire workflows: read your emails, schedule meetings, respond to customers, and analyze data — without writing code.'
+        fact: 'Algorithmic trading already drives a large share of daily market volume, executing orders in microseconds.'
     }
 ];
 
@@ -2059,7 +2053,7 @@ function renderSlide(data) {
         area.innerHTML = `
         <div class="result-slide">
             <div class="result-slide-header">
-                <span class="dyk-emoji" style="font-size:3.5rem">&#x1F99E;</span>
+                <span class="dyk-emoji" style="font-size:3.5rem">&#x1F4A1;</span>
                 <div class="result-slide-title" style="font-size:2rem">Live Survey Results</div>
                 <p style="color:var(--text-muted);margin-top:0.5rem">Use arrows or keyboard to browse questions</p>
             </div>
@@ -2098,7 +2092,7 @@ function renderSlide(data) {
     const chartId = `chart-${qi}`;
 
     // Individual responses for masterclass questions (q14, q15, q16)
-    const isMasterclassQ = ['q14', 'q15', 'q16'].includes(q.id);
+    const isMasterclassQ = false;
     const indResponses = isMasterclassQ && data.individual ? (data.individual[q.id] || []) : [];
     const individualHTML = isMasterclassQ ? `
         <div class="individual-section">
@@ -2386,7 +2380,7 @@ async function downloadCSV() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'openclaw-survey-results.csv';
+        a.download = 'signal-noise-debate-results.csv';
         document.body.appendChild(a);
         a.click();
         a.remove();

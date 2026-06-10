@@ -18,23 +18,26 @@ async function redis(commands) {
 }
 
 const QUESTIONS = [
-    { id: 'q1', text: 'How did you first hear about OpenClaw?' },
-    { id: 'q2', text: 'What best describes your interest in OpenClaw?' },
-    { id: 'q3', text: 'What industry are you in?' },
-    { id: 'q4', text: 'What would you want to use OpenClaw for?' },
-    { id: 'q5', text: 'How familiar are you with AI tools?' },
-    { id: 'q6', text: 'Which features of OpenClaw interest you the most?' },
-    { id: 'q7', text: 'How important is automation in your work or daily life?' },
-    { id: 'q8', text: 'What problems would you want OpenClaw to help solve?' },
-    { id: 'q9', text: 'Where would you most likely use OpenClaw?' },
-    { id: 'q10', text: 'How large is your organization?' },
-    { id: 'q11', text: 'How likely are you to try a new AI tool like OpenClaw in the next 30 days?' },
-    { id: 'q12', text: 'Which tools do you currently use that OpenClaw might improve or replace?' },
-    { id: 'q13', text: 'What matters most when choosing an AI platform?' },
-    { id: 'q14', text: 'What pricing model would you prefer?' },
-    { id: 'q15', text: 'Would you be interested in trying OpenClaw?' },
-    { id: 'q16', text: 'Is this conversation helpful so far?' },
-    { id: 'q17', text: 'Would you be interested in an OpenClaw MasterClass? (3–4 sessions, 1 session per week)' },
+    { id: 'q1', text: 'Will AI eventually replace most financial analysts?' },
+    { id: 'q2', text: 'Should AI be allowed to make loan approval decisions without human review?' },
+    { id: 'q3', text: 'Is the financial industry moving too slowly in adopting AI?' },
+    { id: 'q4', text: 'Will autonomous AI agents become a standard part of banking within the next five years?' },
+    { id: 'q5', text: 'Should customers always be told when they are interacting with AI instead of a human?' },
+    { id: 'q6', text: 'Does AI reduce bias in financial decision-making, or create new forms of bias?' },
+    { id: 'q7', text: 'Should regulators approve AI systems before they are deployed in financial services?' },
+    { id: 'q8', text: 'Would you trust an AI financial advisor with your retirement savings?' },
+    { id: 'q9', text: 'Will AI create more jobs in financial services than it eliminates?' },
+    { id: 'q10', text: 'Are traditional banks better positioned than fintechs to lead the AI revolution?' },
+    { id: 'q11', text: 'Should banks be allowed to use customer data to train AI models?' },
+    { id: 'q12', text: 'Is generative AI currently overhyped in financial services?' },
+    { id: 'q13', text: 'Will AI-powered fraud detection significantly reduce financial crime?' },
+    { id: 'q14', text: 'Will AI make financial services more accessible to underserved communities?' },
+    { id: 'q15', text: 'Are current regulations helping or hindering AI innovation in finance?' },
+    { id: 'q16', text: 'Which poses the greater threat to financial institutions: falling behind in AI adoption or moving too quickly?' },
+    { id: 'q17', text: 'In ten years, will customers prefer AI-driven financial services over human-led experiences?' },
+    { id: 'q18', text: 'Would you let AI manage your personal investments?' },
+    { id: 'q19', text: 'Will the CEO of a major bank be an AI within 25 years?' },
+    { id: 'q20', text: 'Should AI-generated financial advice carry legal liability?' },
 ];
 
 function escapeCSV(val) {
@@ -57,7 +60,7 @@ export default async function handler(req, res) {
 
     try {
         const pipeline = [];
-        for (let i = 1; i <= 17; i++) {
+        for (let i = 1; i <= 20; i++) {
             pipeline.push(['HGETALL', `oc:q${i}`]);
         }
         pipeline.push(['HGETALL', 'oc:respondents']);
@@ -66,7 +69,7 @@ export default async function handler(req, res) {
 
         // Build question results
         const questionData = [];
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 20; i++) {
             const hashData = results[i]?.result;
             const map = {};
             if (hashData && Array.isArray(hashData)) {
@@ -78,7 +81,7 @@ export default async function handler(req, res) {
         }
 
         // Build respondents list
-        const respondentsRaw = results[17]?.result;
+        const respondentsRaw = results[20]?.result;
         const respondents = [];
         if (respondentsRaw && Array.isArray(respondentsRaw)) {
             for (let j = 0; j < respondentsRaw.length; j += 2) {
@@ -92,7 +95,7 @@ export default async function handler(req, res) {
         let csv = 'AGGREGATED RESULTS\n';
         csv += 'Question,Option,Count\n';
 
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 20; i++) {
             const q = QUESTIONS[i];
             const counts = questionData[i];
             const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
@@ -112,7 +115,7 @@ export default async function handler(req, res) {
             });
 
         res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename="openclaw-survey-results.csv"');
+        res.setHeader('Content-Disposition', 'attachment; filename="signal-noise-debate-results.csv"');
         return res.status(200).send(csv);
     } catch (err) {
         console.error('Export error:', err);

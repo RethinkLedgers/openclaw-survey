@@ -1210,7 +1210,7 @@
 
         .speakers-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 0.75rem;
             max-width: 900px;
             margin: 0 auto 2rem;
@@ -1319,7 +1319,7 @@
         @media (max-width: 640px) {
             .intro-hero { min-height: 260px; }
             .intro-hero-content h1 { font-size: 1.6rem; }
-            .speakers-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+            .speakers-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
             .speaker-avatar { width: 56px; height: 56px; font-size: 1.1rem; }
         }
 
@@ -1535,37 +1535,27 @@
              style="width:100%;max-width:560px;height:auto;border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,0.35);">
     </div>
     <div class="intro-speakers-area">
-        <div class="intro-speakers-title">Presented By</div>
+        <div class="intro-speakers-title">The Panel</div>
         <div class="speakers-grid">
             <div class="speaker-card">
-                <div class="speaker-avatar"><img src="images/bart-cant.jpg" alt="Bart Cant"></div>
-                <div class="speaker-name">Bart Cant</div>
-                <div class="speaker-title">Founder and CEO of Msg2ai</div>
+                <div class="speaker-avatar" style="font-size:2rem;">🏦</div>
+                <div class="speaker-name">Banker</div>
+                <div class="speaker-title">Traditional finance</div>
             </div>
             <div class="speaker-card">
-                <div class="speaker-avatar"><img src="images/stefan-friend.jpg" alt="Stefan Friend"></div>
-                <div class="speaker-name">Stefan Friend</div>
-                <div class="speaker-title">Tabbris Executive Director</div>
+                <div class="speaker-avatar" style="font-size:2rem;">💳</div>
+                <div class="speaker-name">Fintech</div>
+                <div class="speaker-title">Disruptor</div>
             </div>
             <div class="speaker-card">
-                <div class="speaker-avatar"><img src="images/mathew-dewald.jpg" alt="Mathew Dewald"></div>
-                <div class="speaker-name">Mathew Dewald</div>
-                <div class="speaker-title">Fractional CFO & Consultant</div>
+                <div class="speaker-avatar" style="font-size:2rem;">⚖️</div>
+                <div class="speaker-name">Regulator</div>
+                <div class="speaker-title">Oversight &amp; policy</div>
             </div>
             <div class="speaker-card">
-                <div class="speaker-avatar"><img src="images/igor-gorlatov.jpg" alt="Igor Gorlatov"></div>
-                <div class="speaker-name">Igor Gorlatov</div>
-                <div class="speaker-title">Founder Advisory5</div>
-            </div>
-            <div class="speaker-card">
-                <div class="speaker-avatar"><img src="images/andrew-reagan.jpg" alt="Andrew Reagan"></div>
-                <div class="speaker-name">Andrew Reagan</div>
-                <div class="speaker-title">Fractional Staff Product Manager & Director of Product</div>
-            </div>
-            <div class="speaker-card">
-                <div class="speaker-avatar"><img src="images/charles-dandrea.jpg" alt="Charles D'Andrea"></div>
-                <div class="speaker-name">Charles D'Andrea</div>
-                <div class="speaker-title">Founder of 1Shot Labs</div>
+                <div class="speaker-avatar" style="font-size:2rem;">🤖</div>
+                <div class="speaker-name">AI Startup Founder</div>
+                <div class="speaker-title">AI builder</div>
             </div>
         </div>
         <div class="intro-cta">
@@ -1771,22 +1761,26 @@
 
 // ===== SURVEY DATA =====
 const questions = [
-    { id:'q1', text:'How did you first hear about OpenClaw?', type:'single', options:['Social media','Friend or colleague','Online search','AI or tech community','Advertisement','Other'] },
-    { id:'q2', text:'What best describes your interest in OpenClaw?', type:'single', options:['Personal use','Business use','Both personal and business','Just exploring AI tools'] },
-    { id:'q3', text:'What industry are you in?', type:'single', options:['Technology','Hospitality or travel','Real estate or property management','Marketing or media','Education','Finance','Retail or ecommerce','Other'] },
-    { id:'q4', text:'What would you want to use OpenClaw for?', type:'multi', options:['Automating tasks','Customer support','Data analysis','Content creation','Workflow automation','AI assistants for teams','Personal productivity','Other'] },
-    { id:'q5', text:'How familiar are you with AI tools?', type:'single', options:['I have never used AI tools','Beginner','Intermediate','Advanced user'] },
-    { id:'q6', text:'Which features of OpenClaw interest you the most?', type:'multi', options:['AI automation','Integrations with other tools','Custom AI workflows','Business productivity tools','Analytics and reporting','Ease of use'] },
-    { id:'q7', text:'How important is automation in your work or daily life?', type:'single', options:['Not important','Slightly important','Moderately important','Very important','Essential'] },
-    { id:'q8', text:'What problems would you want OpenClaw to help solve?', type:'multi', options:['Repetitive manual tasks','Managing customer inquiries','Organizing information','Improving team productivity','Saving time','Reducing operational costs'] },
-    { id:'q9', text:'Where would you most likely use OpenClaw?', type:'single', options:['Personal productivity','Small business','Startup company','Medium sized company','Large enterprise'] },
-    { id:'q10', text:'How large is your organization?', type:'single', options:['Just me','2 to 10 employees','11 to 50 employees','51 to 200 employees','200+'] },
-    { id:'q11', text:'How likely are you to try a new AI tool like OpenClaw in the next 30 days?', type:'single', options:['Very unlikely','Unlikely','Neutral','Likely','Very likely'] },
-    { id:'q12', text:'Which tools do you currently use that OpenClaw might improve or replace?', type:'multi', options:['ChatGPT or other AI tools','Zapier or automation tools','CRM systems','Project management tools','Customer support tools','None currently'] },
-    { id:'q13', text:'What matters most when choosing an AI platform?', type:'multi', maxSelect:3, options:['Price','Ease of use','Powerful features','Security and privacy','Integrations with other tools','Customer support'] },
-    { id:'q14', text:'Would you be interested in a paid 3-week OpenClaw Masterclass? (2 hrs every Friday afternoon — covering setup, agents, agentic tools, skills, and best practices)', type:'single', options:['Yes definitely','Yes if the price is right','Maybe I need more details','Not sure yet','No not interested'] },
-    { id:'q15', text:'What would you most want to learn in an OpenClaw Masterclass?', type:'multi', options:['Initial setup and configuration','Building custom AI agents','Agentic tools and integrations','Skills and workflow automation','Best practices and advanced tips','Real-world use cases and demos'] },
-    { id:'q16', text:'How much would you be willing to pay per session for the OpenClaw Masterclass? (3 sessions, 2 hrs each)', type:'single', options:['$50 per session','$100 per session','$150 per session','Only if it is free'] }
+    { id:'q1', text:'Will AI eventually replace most financial analysts?', type:'single', options:['Yes','No'] },
+    { id:'q2', text:'Should AI be allowed to make loan approval decisions without human review?', type:'single', options:['Yes','No'] },
+    { id:'q3', text:'Is the financial industry moving too slowly in adopting AI?', type:'single', options:['Yes','No'] },
+    { id:'q4', text:'Will autonomous AI agents become a standard part of banking within the next five years?', type:'single', options:['Yes','No'] },
+    { id:'q5', text:'Should customers always be told when they are interacting with AI instead of a human?', type:'single', options:['Yes','No'] },
+    { id:'q6', text:'Does AI reduce bias in financial decision-making, or create new forms of bias?', type:'single', options:['Reduces bias','Creates new bias'] },
+    { id:'q7', text:'Should regulators approve AI systems before they are deployed in financial services?', type:'single', options:['Yes','No'] },
+    { id:'q8', text:'Would you trust an AI financial advisor with your retirement savings?', type:'single', options:['Yes','No'] },
+    { id:'q9', text:'Will AI create more jobs in financial services than it eliminates?', type:'single', options:['Yes','No'] },
+    { id:'q10', text:'Are traditional banks better positioned than fintechs to lead the AI revolution?', type:'single', options:['Yes','No'] },
+    { id:'q11', text:'Should banks be allowed to use customer data to train AI models?', type:'single', options:['Yes','No'] },
+    { id:'q12', text:'Is generative AI currently overhyped in financial services?', type:'single', options:['Yes','No'] },
+    { id:'q13', text:'Will AI-powered fraud detection significantly reduce financial crime?', type:'single', options:['Yes','No'] },
+    { id:'q14', text:'Will AI make financial services more accessible to underserved communities?', type:'single', options:['Yes','No'] },
+    { id:'q15', text:'Are current regulations helping or hindering AI innovation in finance?', type:'single', options:['Helping','Hindering'] },
+    { id:'q16', text:'Which poses the greater threat to financial institutions: falling behind in AI adoption or moving too quickly?', type:'single', options:['Falling behind','Moving too quickly'] },
+    { id:'q17', text:'In ten years, will customers prefer AI-driven financial services over human-led experiences?', type:'single', options:['Yes','No'] },
+    { id:'q18', text:'Would you let AI manage your personal investments?', type:'single', options:['Yes','No'] },
+    { id:'q19', text:'Will the CEO of a major bank be an AI within 25 years?', type:'single', options:['Yes','No'] },
+    { id:'q20', text:'Should AI-generated financial advice carry legal liability?', type:'single', options:['Yes','No'] }
 ];
 
 // ===== TOAST =====
